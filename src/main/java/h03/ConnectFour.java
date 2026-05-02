@@ -240,8 +240,7 @@ public class ConnectFour {
     }
 
     /**
-     * Displays the winner of the game by printing the winning player to the console and filling the entire game board
-     * with color representing the winner.
+     * Displays the winner of the game by filling the entire game board with the color that is representing the winner.
      *
      * @param winner The {@link RobotFamily} color of the winner.
      */
