@@ -100,6 +100,6 @@ public class TribonacciNumbers {
         for (int i = 3; i <= n; i++) {
             array = calculateNextTribonacci(array);
         }
-        return array[array.length - 1];
+        return array[n];
     }
 }
