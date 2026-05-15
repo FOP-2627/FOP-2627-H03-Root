@@ -111,6 +111,7 @@ public class Main {
     public static void runConnectFour() {
         ConnectFour game = new ConnectFour(7, 6);
         game.startGame();
+        game.stopGame();
     }
 
 }

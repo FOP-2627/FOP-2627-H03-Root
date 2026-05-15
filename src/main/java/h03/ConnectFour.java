@@ -22,10 +22,9 @@ public class ConnectFour {
      */
     private final int height;
     /**
-     * Indicates whether the game has finished.
+     * Indicates whether the game is currently running.
      */
-    @SuppressWarnings({"FieldMayBeFinal", "FieldCanBeLocal"})
-    private boolean finished = false;
+    private boolean isRunning = false;
     /**
      * The input handler for this exercise. It checks and waits for the next click in the game window.
      * (You do not need to understand its it inner workings)
@@ -270,24 +269,20 @@ public class ConnectFour {
     }
 
     /**
-     * Displays a Message in the console and on the game board indicating the game is drawn.
+     * Displays a Message in the console indicating the game is drawn.
      */
     @StudentImplementationRequired("H3.2.4")
     public void writeDrawMessage() {
-        inputHandler.displayDrawStatus();
-
         System.out.println("No valid columns found. Hence, game ends with a draw.");
     }
 
     /**
-     * Displays a Message in the console and on the game board indicating the game is won by a player.
+     * Displays a Message in the console indicating the game is won by a player.
      *
      * @param winner {@link RobotFamily} of the winning player
      */
     @StudentImplementationRequired("H3.2.4")
     public void writeWinnerMessage(final RobotFamily winner) {
-        inputHandler.displayWinnerStatus(winner);
-
         System.out.println("Player " + winner + " wins the game!");
     }
 
@@ -305,17 +300,15 @@ public class ConnectFour {
         RobotFamily currentPlayer = RobotFamily.SQUARE_BLUE;
 
         boolean draw = false;
-        finished = false;
 
-        while (!finished) {
+        do {
             currentPlayer = nextPlayer(currentPlayer);
 
-            final int column = inputHandler.getNextInput(stones, currentPlayer);
-            if (column == -1) finished = draw = true;
+            final int column = waitForNextInput(stones, currentPlayer);
+            if (column == -1) draw = true;
 
             dropStone(stones, column, currentPlayer);
-            finished = testWinConditions(stones, currentPlayer);
-        }
+        } while (!draw && !testWinConditions(stones, currentPlayer));
 
         if (draw) {
             writeDrawMessage();
@@ -340,6 +333,8 @@ public class ConnectFour {
      */
     @DoNotTouch
     void stopGame() {
+        inputHandler.waitForCloseInput();
+        isRunning = false;
         World.setVisible(false);
     }
 
@@ -352,6 +347,7 @@ public class ConnectFour {
         World.setDelay(10);
         World.setVisible(true);
         inputHandler.install();
+        isRunning = true;
     }
 
     /**
@@ -365,6 +361,14 @@ public class ConnectFour {
     @DoNotTouch
     public static void setFieldColor(final int x, final int y, final RobotFamily color) {
         World.getGlobalWorld().setFieldColor(x, y, color.getColor());
+    }
+
+    @DoNotTouch
+    public int waitForNextInput(final RobotFamily[][] stones, final RobotFamily currentPlayer) {
+        if (stones == null || currentPlayer == null) {
+            throw new NullPointerException("stones and/or currentPlayer cannot be null when calling waitForNextInput");
+        }
+        return inputHandler.getNextInput(stones, currentPlayer);
     }
 
     /**
@@ -383,8 +387,8 @@ public class ConnectFour {
      * @return whether the game is finished.
      */
     @DoNotTouch
-    public boolean isFinished() {
-        return finished;
+    public boolean isRunning() {
+        return isRunning;
     }
 
 }
