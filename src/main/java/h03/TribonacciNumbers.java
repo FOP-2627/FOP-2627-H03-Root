@@ -52,7 +52,7 @@ public class TribonacciNumbers {
      * @return a new array containing all elements from the input array plus the value at the end
      */
     @StudentImplementationRequired("H3.1.2")
-    public static int[] push(final int[] array, final int value) {
+    public static int[] push(int[] array, int value) {
         final int[] newArray = new int[array.length + 1];
         for (int i = 0; i < array.length; i++) {
             newArray[i] = array[i];
@@ -78,7 +78,7 @@ public class TribonacciNumbers {
      * @throws IndexOutOfBoundsException if the input array has less than 3 elements (accessing invalid indices)
      */
     @StudentImplementationRequired("H3.1.3")
-    public static int[] calculateNextTribonacci(final int[] array) {
+    public static int[] calculateNextTribonacci(int[] array) {
         int n_3 = array[array.length - 3];
         int n_2 = array[array.length - 2];
         int n_1 = array[array.length - 1];
@@ -106,7 +106,7 @@ public class TribonacciNumbers {
      * @return the Tribonacci number at position {@code n}
      */
     @StudentImplementationRequired("H3.1.1")
-    public static int tribonacci(final int n) {
+    public static int tribonacci(int n) {
         int[] array = getStartingNumbers();
         for (int i = 3; i <= n; i++) {
             array = calculateNextTribonacci(array);
