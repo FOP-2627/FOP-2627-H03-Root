@@ -23,21 +23,18 @@ public class Main {
      */
     public static void main(final String[] args) {
         // You can comment out any of these test methods to run only the tests you want.
-        // For example, if you only want to test Tribonacci functions, comment out testH3_1_2(), testH3_2(), and runConnectFour()
+        // For example, if you only want to test Tribonacci functions, comment out testH3_2(), and runConnectFour()
         // (Most IDEs have a "line comment" / "toggle line comment" shortcut which is very useful.
         // The default "Ctrl"+"/" in IntelliJ is a bit impractical.)
 
         // Test Tribonacci functions (push, calculateNextTribonacci, tribonacci)
-        testH3_1_1();
-
-        // Test text search functions (anyMatch, countRelevant)
-        testH3_1_2();
+        testH3_1();
 
         // Test individual Connect Four mechanics (drop one stone, see steps calculated)
         testH3_2();
 
         // Play a complete Connect Four game with both players
-        // runConnectFour();
+        runConnectFour();
     }
 
     /**
@@ -46,7 +43,14 @@ public class Main {
      * Check the console output to ensure all three tests produce the expected results.
      * If a test fails, an assertion error will be printed indicating what went wrong.
      */
-    public static void testH3_1_1() {
+    public static void testH3_1() {
+        // getStartingNumbers test
+        final int[] startingNumbers = TribonacciNumbers.getStartingNumbers();
+        System.out.println("Starting numbers: " + Arrays.toString(startingNumbers));
+        testEquals(0, startingNumbers[0]);
+        testEquals(1, startingNumbers[1]);
+        testEquals(1, startingNumbers[2]);
+
         // push test
         final int[] pushInput = new int[]{3, 7, 13};
         final int[] pushOutput = TribonacciNumbers.push(pushInput, 42);
@@ -67,41 +71,6 @@ public class Main {
         final int nthTribonacci = TribonacciNumbers.tribonacci(n);
         System.out.println("The " + n + "-th Tribonacci number is: '" + nthTribonacci + "'");
         testEquals(149, TribonacciNumbers.tribonacci(10));
-    }
-
-    /**
-     * Manual test for H3.1 - Text search functions.
-     * <p>
-     * The console will display the entire first text and the search results below.
-     * Compare the search results with what you manually see in the text to verify correctness.
-     * If results don't match your manual count, check your implementation.
-     */
-    public static void testH3_1_2() {
-        final String[][] text1 = new String[][]{
-            "Wie so künstlich ! fiel mir ein ,".split(" "),
-            "Müssen hier die kleinen Teile".split(" "),
-            "In einander eingeschränkt ,".split(" "),
-            "durch einander hergelenkt".split(" "),
-            "Wunderbar verbunden sein !".split(" ")
-        };
-        final String[][] text2 = new String[][]{
-            "Wie erschaffen , so erhält ,".split(" "),
-            "Und so herrlich zubereitet .".split(" "),
-            "Hast du also , kleine Fliege ,".split(" "),
-            "Da ich mir an die vergnüge ,".split(" "),
-            "selbst zur Gottheit mich geleitet .".split(" ")
-        };
-        final String[][][] corpus = new String[][][]{text1, text2};
-
-        // anyMatch test
-        System.out.println("First Text: " + Arrays.deepToString(text1));
-        System.out.println("Did find 'Wunderbar': " + TextSearch.anyMatch(text1, "Wunderbar"));
-        System.out.println("Did find 'Fehler': " + TextSearch.anyMatch(text1, "Fehler"));
-
-        // count Relevant test
-        System.out.println("Relevant for 'so': " + TextSearch.countRelevant(corpus, "so"));
-        System.out.println("Relevant for 'Gottheit': " + TextSearch.countRelevant(corpus, "Gottheit"));
-        System.out.println("Relevant for 'Fehler': " + TextSearch.countRelevant(corpus, "Fehler"));
     }
 
     /**
