@@ -149,9 +149,10 @@ public class ConnectFour {
      */
     @StudentImplementationRequired("H3.2.3")
     public static boolean testWinHorizontal(final RobotFamily[][] stones, final RobotFamily currentPlayer) {
+        final RobotFamily[] line = new RobotFamily[4];
+
         for (int row = 0; row < World.getHeight(); row++) {
-            for (int column = 0; column < World.getWidth() - 4; column++) {
-                final RobotFamily[] line = new RobotFamily[4];
+            for (int column = 0; column < World.getWidth() - line.length + 1; column++) {
                 for (int i = 0; i < line.length; i++) {
                     line[i] = stones[row][column + i];
                 }
@@ -171,9 +172,10 @@ public class ConnectFour {
      */
     @StudentImplementationRequired("H3.2.3")
     public static boolean testWinVertical(final RobotFamily[][] stones, final RobotFamily currentPlayer) {
+        final RobotFamily[] line = new RobotFamily[4];
+
         for (int column = 0; column < World.getWidth(); column++) {
-            for (int row = 0; row < World.getHeight() - 4; row++) {
-                final RobotFamily[] line = new RobotFamily[4];
+            for (int row = 0; row < World.getHeight() - line.length + 1; row++) {
                 for (int i = 0; i < line.length; i++) {
                     line[i] = stones[row + i][column];
                 }
