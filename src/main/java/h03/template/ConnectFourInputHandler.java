@@ -158,7 +158,7 @@ public class ConnectFourInputHandler {
     public int getNextInput(final RobotFamily[][] stones, final RobotFamily currentPlayer) {
         rowSelectMode.set(true);
         statusLabel.setText(
-            "<html>Click on a column to insert a disc.<br>Current Player: %s</html>".formatted(currentPlayer.getName())
+            "<html>Click on a column to insert a stone.<br>Current Player: %s</html>".formatted(currentPlayer.getName())
         );
 
         if (ConnectFour.testWinConditions(stones, currentPlayer)) {
