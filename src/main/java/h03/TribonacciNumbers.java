@@ -28,6 +28,17 @@ public class TribonacciNumbers {
         throw new IllegalStateException("This class is not meant to be instantiated.");
     }
 
+
+    /**
+     * Creates a new array consisting of the 3 starting numbers of the Tribonacci numbers (0, 1, 1).
+     *
+     * @return array of the 3 Tribonacci starting numbers: 0, 1, 1.
+     */
+    @StudentImplementationRequired("H3.1.1")
+    public static int[] getStartingNumbers() {
+        return new int[]{0, 1, 1};
+    }
+
     /**
      * Creates a new array by copying the input array and appending a new value at the end.
      * <p>
@@ -40,7 +51,7 @@ public class TribonacciNumbers {
      * @param value the value to append to the end
      * @return a new array containing all elements from the input array plus the value at the end
      */
-    @StudentImplementationRequired("H3.1.1")
+    @StudentImplementationRequired("H3.1.2")
     public static int[] push(final int[] array, final int value) {
         final int[] newArray = new int[array.length + 1];
         for (int i = 0; i < array.length; i++) {
@@ -66,7 +77,7 @@ public class TribonacciNumbers {
      * @return a new array with the next Tribonacci number appended at the end
      * @throws IndexOutOfBoundsException if the input array has less than 3 elements (accessing invalid indices)
      */
-    @StudentImplementationRequired("H3.1.1")
+    @StudentImplementationRequired("H3.1.3")
     public static int[] calculateNextTribonacci(final int[] array) {
         int n_3 = array[array.length - 3];
         int n_2 = array[array.length - 2];
@@ -96,7 +107,7 @@ public class TribonacciNumbers {
      */
     @StudentImplementationRequired("H3.1.1")
     public static int tribonacci(final int n) {
-        int[] array = {0, 1, 1};
+        int[] array = getStartingNumbers();
         for (int i = 3; i <= n; i++) {
             array = calculateNextTribonacci(array);
         }
