@@ -91,7 +91,7 @@ public class Main {
 
         final int column = test.getInputHandler().getNextInput(stones, currentPlayer);
 
-        final int nSteps = ConnectFour.getNumberSteps(stones, column);
+        final int nSteps = ConnectFour.getNumberOfSteps(stones, column);
         System.out.println("Number of Steps: " + nSteps);
 
         ConnectFour.dropStone(stones, column, currentPlayer);

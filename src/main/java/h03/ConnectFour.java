@@ -66,7 +66,7 @@ public class ConnectFour {
      * @return The number of steps the stone needs to fall. Returns -1 if the column is full.
      */
     @StudentImplementationRequired("H3.2.2")
-    public static int getNumberSteps(final RobotFamily[][] stones, final int column) {
+    public static int getNumberOfSteps(final RobotFamily[][] stones, final int column) {
         // Starting at the bottom (row = 0) and going up row++ until a field is empty (== null).
         for (int row = 0; row < stones.length; row++) {
             if (stones[row][column] == null) {
@@ -79,7 +79,7 @@ public class ConnectFour {
 
     /**
      * Drops a stone into the specified column of the game board, simulating a falling animation. This method gets the
-     * number of steps the stone needs to fall using the {@code getNumberSteps} method. It creates a new Robot
+     * number of steps the stone needs to fall using the {@code getNumberOfSteps} method. It creates a new Robot
      * instance to represent the stone with the currentPlayer's {@link RobotFamily} in the given column at the top row.
      * After that it simulates the stone's fall by moving it down until it reaches its destination row. Once
      * the stone reaches its destination, the method updates the stones array (a 2D array of {@link RobotFamily} colors) to
@@ -96,7 +96,7 @@ public class ConnectFour {
         final Robot stone = new Robot(column, World.getHeight() - 1, Direction.DOWN, 0, currentPlayer);
 
         // let stone fall
-        final int nSteps = getNumberSteps(stones, column);
+        final int nSteps = getNumberOfSteps(stones, column);
         for (int currStep = 0; currStep < nSteps; currStep++) {
             stone.move();
         }
