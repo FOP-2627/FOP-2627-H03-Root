@@ -105,7 +105,7 @@ public class TribonacciNumbers {
      * @param n the position in the Tribonacci sequence (0-indexed).
      * @return the Tribonacci number at position {@code n}
      */
-    @StudentImplementationRequired("H3.1.1")
+    @StudentImplementationRequired("H3.1.4")
     public static int tribonacci(int n) {
         int[] array = getStartingNumbers();
         for (int i = 3; i <= n; i++) {
