@@ -365,6 +365,16 @@ public class ConnectFour {
         World.getGlobalWorld().setFieldColor(x, y, color.getColor());
     }
 
+    /**
+     * Waits for the next input from the user, which is expected to be a column index where the current player wants
+     * to drop a stone.
+     *
+     * @param stones        2D array representing the game board, where each cell contains a RobotFamily color
+     *                      indicating the player that has placed a stone in that position.
+     * @param currentPlayer The RobotFamily color representing the current player who is about to make a move.
+     * @return The column index input by the user for dropping a stone.
+     * @throws NullPointerException if stones or currentPlayer is null when calling this method.
+     */
     @DoNotTouch
     public int waitForNextInput(RobotFamily[][] stones, RobotFamily currentPlayer) {
         if (stones == null || currentPlayer == null) {
