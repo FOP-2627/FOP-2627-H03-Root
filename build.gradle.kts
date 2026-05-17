@@ -35,5 +35,11 @@ jagr {
             graderName.set("FOP-2627-H03-Private")
             rubricProviderName.set("h03.H03_RubricProviderPrivate")
         }
+        val templateAnnotation by creating {
+            configureDependencies {
+                implementation("org.tudalgo:algoutils-tutor:0.9.0")
+            }
+        }
     }
 }
+

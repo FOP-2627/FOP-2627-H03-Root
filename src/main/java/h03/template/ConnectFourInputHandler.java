@@ -37,6 +37,11 @@ public class ConnectFourInputHandler {
     private final AtomicBoolean rowSelectMode = new AtomicBoolean(false);
 
     /**
+     * Whether the game has finished.
+     */
+    private final AtomicBoolean gameHasFinished = new AtomicBoolean(false);
+
+    /**
      * The status label.
      */
     private final JLabel statusLabel = new JLabel("", SwingConstants.CENTER);
@@ -71,9 +76,7 @@ public class ConnectFourInputHandler {
      * @param action the action to execute
      */
     private void whenGameIsRunning(final Runnable action) {
-        if (!connectFour.isFinished()) {
-            action.run();
-        }
+        if (connectFour.isRunning()) action.run();
     }
 
     /**
@@ -88,7 +91,7 @@ public class ConnectFourInputHandler {
         );
         World.getGlobalWorld().getInputHandler().addFieldHoverListener(e -> whenGameIsRunning(() -> {
             // deselect last hovered field, if any
-            if (e.getPreviousField() != null) {
+            if (e.getPreviousField() != null && !gameHasFinished.get()) {
                 setColumnColor(e.getPreviousField().getX(), () -> null);
             }
             if (rowSelectMode.get()) {
@@ -155,11 +158,15 @@ public class ConnectFourInputHandler {
     public int getNextInput(final RobotFamily[][] stones, final RobotFamily currentPlayer) {
         rowSelectMode.set(true);
         statusLabel.setText(
-            "<html>Click on a column to insert a disc.<br>Current Player: %s</html>".formatted(currentPlayer.getName())
+            "<html>Click on a column to insert a stone.<br>Current Player: %s</html>".formatted(currentPlayer.getName())
         );
 
-        if (ConnectFour.isGameBoardFull(stones)) {
+        if (ConnectFour.testWinConditions(stones, currentPlayer)) {
             rowSelectMode.set(false);
+            displayWinnerStatus(currentPlayer);
+        } else if (ConnectFour.isGameBoardFull(stones)) {
+            rowSelectMode.set(false);
+            displayDrawStatus();
             return -1;
         }
 
@@ -182,7 +189,8 @@ public class ConnectFourInputHandler {
      * Sets a status message, saying that the game has ended in a draw.
      */
     public void displayDrawStatus() {
-        statusLabel.setText("<html>No valid columns found. <br>Hence, game ends with a draw.</html>");
+        final String text = "<html>No valid columns found. <br>Hence, game ends with a draw.</i></html>";
+        statusLabel.setText(text);
     }
 
     /**
@@ -191,7 +199,52 @@ public class ConnectFourInputHandler {
      * @param winner the winner of the game
      */
     public void displayWinnerStatus(final RobotFamily winner) {
-        statusLabel.setText("<html>Player %s has won the game!</html>".formatted(winner.getName()));
+        final String text = "<html>Player %s has won the game!</html>";
+        statusLabel.setText(text.formatted(winner.getName()));
+    }
+
+    /**
+     * Waits for the user to click to close the game. The current status message is preserved
+     * and supplemented with "(Click to close the game)" text.
+     */
+    public void waitForCloseInput() {
+        waitForCloseInput(true);
+    }
+
+    /**
+     * Waits for the user to click to close the game. Updates the status label to inform the user
+     * that they can click to close the game window.
+     *
+     * @param keepStatus if {@code true}, the current status text is preserved and the close prompt
+     *                   is appended to it; if {@code false}, the status label is replaced with only
+     *                   the close prompt
+     */
+    public void waitForCloseInput(final boolean keepStatus) {
+        rowSelectMode.set(false);
+        gameHasFinished.set(true);
+
+        // update status label
+        String closeText = "<i>(Click to close the game)</i>";
+
+        if (keepStatus) {
+            closeText = "<html>" + closeText + "</html>";
+        } else {
+            String statusText = statusLabel.getText();
+            final String appendText = "<br>" + closeText + "</html>";
+            if (statusText.endsWith("</html>")) {
+                closeText = statusText.substring(0, statusText.length() - "</html>".length()) + appendText;
+            } else {
+                closeText = "<html>" + statusText + appendText;
+            }
+        }
+        statusLabel.setText(closeText);
+
+        // wait for next click
+        try {
+            inputQueue.take();
+        } catch (final InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
