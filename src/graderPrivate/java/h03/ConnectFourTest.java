@@ -1,12 +1,7 @@
 package h03;
 
-import fopbot.Direction;
-import fopbot.Robot;
-import fopbot.RobotFamily;
-import fopbot.RobotTrace;
-import fopbot.Transition;
-import fopbot.World;
-import h03.template.InputHandler;
+import fopbot.*;
+import h03.template.ConnectFourInputHandler;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -31,25 +26,13 @@ import spoon.reflect.reference.CtExecutableReference;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static h03.TestUtils.getCtMethod;
 import static h03.TestUtils.iterateMethodStatements;
-import static org.tudalgo.algoutils.tutor.general.assertions.Assertions2.assertCallEquals;
-import static org.tudalgo.algoutils.tutor.general.assertions.Assertions2.assertCallFalse;
-import static org.tudalgo.algoutils.tutor.general.assertions.Assertions2.assertEquals;
-import static org.tudalgo.algoutils.tutor.general.assertions.Assertions2.assertSame;
-import static org.tudalgo.algoutils.tutor.general.assertions.Assertions2.assertTrue;
-import static org.tudalgo.algoutils.tutor.general.assertions.Assertions2.call;
-import static org.tudalgo.algoutils.tutor.general.assertions.Assertions2.callObject;
-import static org.tudalgo.algoutils.tutor.general.assertions.Assertions2.contextBuilder;
-import static org.tudalgo.algoutils.tutor.general.assertions.Assertions2.emptyContext;
+import static org.tudalgo.algoutils.tutor.general.assertions.Assertions2.*;
 
 @TestForSubmission
 @Timeout(
@@ -101,13 +84,13 @@ public class ConnectFourTest {
     }
 
     @ParameterizedTest
-    @JsonParameterSetTest(value = "FourWinsTestValidateInput.json")
+    @JsonParameterSetTest(value = "ConnectFourTestValidateInput.json")
     public void testValidateInputEdgeCases(final JsonParameterSet params) {
         testValidateInput(params);
     }
 
     @ParameterizedTest
-    @JsonParameterSetTest(value = "FourWinsTestValidateInputRandomCases.generated.json")
+    @JsonParameterSetTest(value = "ConnectFourTestValidateInputRandomCases.generated.json")
     public void testValidateInputRandomCases(final JsonParameterSet params) {
         testValidateInput(params);
     }
@@ -134,16 +117,15 @@ public class ConnectFourTest {
         RobotFamily[][] paramStonesArray = paramStones.stream()
             .map(innerList -> innerList.stream()
                 .map(str -> "EMPTY".equals(str) ? null : "SQUARE_RED".equals(str) ? RobotFamily.SQUARE_RED :
-                    RobotFamily.SQUARE_BLUE)
+                                                         RobotFamily.SQUARE_BLUE)
                 .toArray(RobotFamily[]::new))
             .toArray(RobotFamily[][]::new);
 
 
-
         final boolean actualResult = Assertions2.callObject(
-            () -> FourWins.validateInput(
-                paramColumn,
-                paramStonesArray
+            () -> ConnectFour.validateInput(
+                paramStonesArray,
+                paramColumn
             ),
             cb.build(),
             r -> "An error occurred during execution."
@@ -159,27 +141,27 @@ public class ConnectFourTest {
     }
 
     @ParameterizedTest
-    @JsonParameterSetTest("FourWinsTestGameBoard.generated.json")
+    @JsonParameterSetTest("ConnectFourTestGameBoard.generated.json")
     public void testGetDestinationRowFreeSlot(JsonParameterSet params) {
         testGetDestinationRow(params, true);
     }
 
     @ParameterizedTest
-    @JsonParameterSetTest("FourWinsTestGameBoard.generated.json")
+    @JsonParameterSetTest("ConnectFourTestGameBoard.generated.json")
     public void testGetDestinationRowBlockedSlot(JsonParameterSet params) {
         testGetDestinationRow(params, false);
     }
 
     @Test
     public void testGetDestinationRowVAnforderung() {
-        iterateMethodStatements(FourWins.class,
+        iterateMethodStatements(ConnectFour.class,
             "getDestinationRow",
-            new Class[] {int.class, RobotFamily[][].class},
+            new Class[]{int.class, RobotFamily[][].class},
             SINGLE_LOOP_VA);
     }
 
     @ParameterizedTest
-    @JsonParameterSetTest("FourWinsTestGameBoard.generated.json")
+    @JsonParameterSetTest("ConnectFourTestGameBoard.generated.json")
     public void testDropStoneRobotCorrect(JsonParameterSet params) {
         setup(params);
         List<Integer> firstFreeIndex = params.get("firstFreeIndex");
@@ -198,7 +180,7 @@ public class ConnectFourTest {
 
             try {
                 final int finalCol = col;
-                call(() -> FourWins.dropStone(finalCol, stones, currentPlayer), context, result ->
+                call(() -> ConnectFour.dropStone(stones, finalCol, currentPlayer), context, result ->
                     "An exception occurred while invoking method dropStone. Result may be salvageable, continuing...");
             } catch (Throwable t) {
                 t.printStackTrace(System.err);
@@ -230,8 +212,8 @@ public class ConnectFourTest {
 
     @Test
     public void testDropStoneCallsGetDestinationRow() {
-        CtMethod<?> dropStoneCtMethod = getCtMethod(FourWins.class, "dropStone", int.class, RobotFamily[][].class, RobotFamily.class);
-        CtExecutableReference<?> getDestinationRowCtExecRef = getCtMethod(FourWins.class, "getDestinationRow", int.class, RobotFamily[][].class)
+        CtMethod<?> dropStoneCtMethod = getCtMethod(ConnectFour.class, "dropStone", int.class, RobotFamily[][].class, RobotFamily.class);
+        CtExecutableReference<?> getDestinationRowCtExecRef = getCtMethod(ConnectFour.class, "getDestinationRow", int.class, RobotFamily[][].class)
             .getReference();
         Iterator<CtElement> iterator = dropStoneCtMethod.descendantIterator();
 
@@ -247,7 +229,7 @@ public class ConnectFourTest {
     }
 
     @ParameterizedTest
-    @JsonParameterSetTest("FourWinsTestGameBoard.generated.json")
+    @JsonParameterSetTest("ConnectFourTestGameBoard.generated.json")
     public void testDropStoneMovementCorrect(JsonParameterSet params) {
         setup(params);
         List<Integer> firstFreeIndex = params.get("firstFreeIndex");
@@ -266,7 +248,7 @@ public class ConnectFourTest {
 
             try {
                 final int finalCol = col;
-                call(() -> FourWins.dropStone(finalCol, stones, currentPlayer), context, result ->
+                call(() -> ConnectFour.dropStone(stones, finalCol, currentPlayer), context, result ->
                     "An exception occurred while invoking method dropStone. Result may be salvageable, continuing...");
             } catch (Throwable t) {
                 t.printStackTrace(System.err);
@@ -301,20 +283,20 @@ public class ConnectFourTest {
 
     @Test
     public void testDropStoneVAnforderung() {
-        iterateMethodStatements(FourWins.class,
+        iterateMethodStatements(ConnectFour.class,
             "dropStone",
-            new Class[] {int.class, RobotFamily[][].class, RobotFamily.class},
+            new Class[]{int.class, RobotFamily[][].class, RobotFamily.class},
             SINGLE_LOOP_VA);
     }
 
     @ParameterizedTest
-    @JsonParameterSetTest("FourWinsTestGameBoardHorizontalWin.generated.json")
+    @JsonParameterSetTest("ConnectFourTestGameBoardHorizontalWin.generated.json")
     public void testTestWinHorizontal(JsonParameterSet params) {
         setup(params);
         List<Map<String, Integer>> winningRowCoordinates = params.get("winningRowCoordinates");
         Context context = baseContextBuilder.build();
         boolean expected = !winningRowCoordinates.isEmpty();
-        boolean actual = callObject(() -> FourWins.testWinHorizontal(stones, currentPlayer), context, result ->
+        boolean actual = callObject(() -> ConnectFour.testWinHorizontal(stones, currentPlayer), context, result ->
             "An exception occurred while invoking method testWinHorizontal");
         assertEquals(expected, actual, context, result ->
             "Method testWinHorizontal did not return the correct value");
@@ -342,19 +324,19 @@ public class ConnectFourTest {
             .build();
 
         World.setSize(worldWidth, worldHeight);
-        assertCallFalse(() -> FourWins.testWinHorizontal(stones, currentPlayer), context, result ->
+        assertCallFalse(() -> ConnectFour.testWinHorizontal(stones, currentPlayer), context, result ->
             "Method testWinHorizontal returned an incorrect value");
     }
 
     @ParameterizedTest
-    @JsonParameterSetTest("FourWinsTestGameBoardVerticalWin.generated.json")
+    @JsonParameterSetTest("ConnectFourTestGameBoardVerticalWin.generated.json")
     public void testTestWinVertical(JsonParameterSet params) {
         setup(params);
         List<Map<String, Integer>> winningColCoordinates = params.get("winningColCoordinates");
         Context context = baseContextBuilder.build();
 
         boolean expected = !winningColCoordinates.isEmpty();
-        boolean actual = callObject(() -> FourWins.testWinVertical(stones, currentPlayer), context, result ->
+        boolean actual = callObject(() -> ConnectFour.testWinVertical(stones, currentPlayer), context, result ->
             "An exception occurred while invoking method testWinVertical");
         assertEquals(expected, actual, context, result ->
             "Method testWinVertical did not return the correct value");
@@ -382,19 +364,19 @@ public class ConnectFourTest {
             .build();
 
         World.setSize(worldWidth, worldHeight);
-        assertCallFalse(() -> FourWins.testWinVertical(stones, currentPlayer), context, result ->
+        assertCallFalse(() -> ConnectFour.testWinVertical(stones, currentPlayer), context, result ->
             "Method testWinVertical returned an incorrect value");
     }
 
     /**
-     * Tests {@link FourWins#testWinConditions(RobotFamily[][], RobotFamily)}.
+     * Tests {@link ConnectFour#testWinConditions(RobotFamily[][], RobotFamily)}.
      * The parameter {@code flags} is used to determine the return value of the win condition methods,
      * where a set bit is interpreted as {@code true} and an unset bit as {@code false}.
      * Only the first three bits are evaluated and correspond to the methods as follows:
      * <ul>
-     *     <li>Bit 0: {@link FourWins#testWinHorizontal(RobotFamily[][], RobotFamily)}</li>
-     *     <li>Bit 1: {@link FourWins#testWinVertical(RobotFamily[][], RobotFamily)}</li>
-     *     <li>Bit 2: {@link FourWins#testWinDiagonal(RobotFamily[][], RobotFamily)}</li>
+     *     <li>Bit 0: {@link ConnectFour#testWinHorizontal(RobotFamily[][], RobotFamily)}</li>
+     *     <li>Bit 1: {@link ConnectFour#testWinVertical(RobotFamily[][], RobotFamily)}</li>
+     *     <li>Bit 2: {@link ConnectFour#testWinDiagonal(RobotFamily[][], RobotFamily)}</li>
      * </ul>
      *
      * @param flags the flags (2:0, 31:3 are unused)
@@ -403,9 +385,9 @@ public class ConnectFourTest {
     @ParameterizedTest
     @ValueSource(ints = {0, 1, 2, 3, 4, 5, 6, 7})
     public void testTestWinConditions(int flags) throws ReflectiveOperationException {
-        Method testWinHorizontalMethod = FourWins.class.getDeclaredMethod("testWinHorizontal", RobotFamily[][].class, RobotFamily.class);
-        Method testWinVerticalMethod = FourWins.class.getDeclaredMethod("testWinVertical", RobotFamily[][].class, RobotFamily.class);
-        Method testWinDiagonalMethod = FourWins.class.getDeclaredMethod("testWinDiagonal", RobotFamily[][].class, RobotFamily.class);
+        Method testWinHorizontalMethod = ConnectFour.class.getDeclaredMethod("testWinHorizontal", RobotFamily[][].class, RobotFamily.class);
+        Method testWinVerticalMethod = ConnectFour.class.getDeclaredMethod("testWinVertical", RobotFamily[][].class, RobotFamily.class);
+        Method testWinDiagonalMethod = ConnectFour.class.getDeclaredMethod("testWinDiagonal", RobotFamily[][].class, RobotFamily.class);
         Answer<?> answer = invocation -> {
             if (invocation.getMethod().equals(testWinHorizontalMethod)) {
                 return (flags & 1) == 1;
@@ -432,15 +414,15 @@ public class ConnectFourTest {
             .build();
 
         World.setSize(worldWidth, worldHeight);
-        try (MockedStatic<FourWins> mock = Mockito.mockStatic(FourWins.class, answer)) {
-            assertCallEquals(flags != 0, () -> FourWins.testWinConditions(stones, currentPlayer), context, result ->
+        try (MockedStatic<ConnectFour> mock = Mockito.mockStatic(ConnectFour.class, answer)) {
+            assertCallEquals(flags != 0, () -> ConnectFour.testWinConditions(stones, currentPlayer), context, result ->
                 "Method testWinConditions did not return the correct value");
         }
     }
 
     @Test
     public void testTestWinConditionsVAnforderung() {
-        iterateMethodStatements(FourWins.class, "testWinConditions", new Class[] {RobotFamily[][].class, RobotFamily.class}, iterator -> {
+        iterateMethodStatements(ConnectFour.class, "testWinConditions", new Class[]{RobotFamily[][].class, RobotFamily.class}, iterator -> {
             boolean callsTestWinHorizontal = false;
             boolean callsTestWinVertical = false;
             boolean callsTestWinDiagonal = false;
@@ -472,7 +454,7 @@ public class ConnectFourTest {
             .build();
 
         RobotFamily expected = isRedPlayer ? RobotFamily.SQUARE_BLUE : RobotFamily.SQUARE_RED;
-        assertCallEquals(expected, () -> FourWins.nextPlayer(currentPlayer), context, result ->
+        assertCallEquals(expected, () -> ConnectFour.nextPlayer(currentPlayer), context, result ->
             "Method nextPlayer did not return the correct value");
     }
 
@@ -490,7 +472,7 @@ public class ConnectFourTest {
 
         World.setSize(worldWidth, worldHeight);
         World.setDelay(0);
-        call(() -> FourWins.colorFieldBackground(winner), context, result ->
+        call(() -> ConnectFour.colorFieldBackground(winner), context, result ->
             "An exception occurred while invoking colorFieldBackground");
         for (int row = 0; row < worldHeight; row++) {
             for (int col = 0; col < worldWidth; col++) {
@@ -511,7 +493,7 @@ public class ConnectFourTest {
 
         int worldHeight = 5;
         int worldWidth = 5;
-        FourWins fourWinsInstance = new FourWins(worldWidth, worldHeight);
+        ConnectFour ConnectFourInstance = new ConnectFour(worldWidth, worldHeight);
         Context.Builder<?> contextBuilder = contextBuilder()
             .add("world height", worldHeight)
             .add("world width", worldWidth);
@@ -519,7 +501,7 @@ public class ConnectFourTest {
         World.setSize(worldWidth, worldHeight);
         try {
             contextBuilder.add("method", "writeDrawMessage");
-            fourWinsInstance.writeDrawMessage();
+            ConnectFourInstance.writeDrawMessage();
             assertEquals(
                 "No valid columns found. Hence, game ends with a draw.",
                 outputStream.toString().strip(),
@@ -528,10 +510,10 @@ public class ConnectFourTest {
             );
 
             contextBuilder.add("method", "writeWinnerMessage");
-            for (RobotFamily winner : new RobotFamily[] {RobotFamily.SQUARE_RED, RobotFamily.SQUARE_BLUE}) {
+            for (RobotFamily winner : new RobotFamily[]{RobotFamily.SQUARE_RED, RobotFamily.SQUARE_BLUE}) {
                 contextBuilder.add("winner", winner);
                 outputStream.reset();
-                fourWinsInstance.writeWinnerMessage(winner);
+                ConnectFourInstance.writeWinnerMessage(winner);
                 assertEquals(
                     "Player %s wins the game!".formatted(winner),
                     outputStream.toString().strip(),
@@ -549,28 +531,28 @@ public class ConnectFourTest {
         List<RobotFamily> nextPlayerArgs = new ArrayList<>();
         Answer<?> answer = invocation -> {
             Method method = invocation.getMethod();
-            if (method.getName().equals("nextPlayer") && Arrays.equals(method.getParameterTypes(), new Class[] {RobotFamily.class})) {
+            if (method.getName().equals("nextPlayer") && Arrays.equals(method.getParameterTypes(), new Class[]{RobotFamily.class})) {
                 RobotFamily currentPlayer = invocation.getArgument(0);
                 nextPlayerArgs.add(currentPlayer);
                 return currentPlayer == RobotFamily.SQUARE_RED ? RobotFamily.SQUARE_BLUE : RobotFamily.SQUARE_RED;
-            } else if (method.getName().equals("dropStone") && Arrays.equals(method.getParameterTypes(), new Class[] {int.class, RobotFamily[][].class, RobotFamily.class})) {
+            } else if (method.getName().equals("dropStone") && Arrays.equals(method.getParameterTypes(), new Class[]{int.class, RobotFamily[][].class, RobotFamily.class})) {
                 return null;
-            } else if (method.getName().equals("testWinConditions") && Arrays.equals(method.getParameterTypes(), new Class[] {RobotFamily[][].class, RobotFamily.class})) {
+            } else if (method.getName().equals("testWinConditions") && Arrays.equals(method.getParameterTypes(), new Class[]{RobotFamily[][].class, RobotFamily.class})) {
                 return nextPlayerArgs.size() >= 5;
             } else {
                 return invocation.callRealMethod();
             }
         };
-        try (MockedStatic<FourWins> mockedStatic = Mockito.mockStatic(FourWins.class, answer)) {
+        try (MockedStatic<ConnectFour> mockedStatic = Mockito.mockStatic(ConnectFour.class, answer)) {
             int worldHeight = 5;
             int worldWidth = 5;
-            FourWins fourWins = new FourWins(worldWidth, worldHeight);
-            InputHandler inputHandler = fourWins.getInputHandler();
+            ConnectFour ConnectFour = new ConnectFour(worldWidth, worldHeight);
+            ConnectFourInputHandler inputHandler = ConnectFour.getInputHandler();
             for (int i = 0; i < 10; i++) {
                 inputHandler.addInput(0);
             }
 
-            fourWins.startGame();
+            ConnectFour.startGame();
             for (int i = 0; i < nextPlayerArgs.size(); i++) {
                 Context context = contextBuilder()
                     .add("world height", worldHeight)
@@ -596,15 +578,15 @@ public class ConnectFourTest {
         List<RobotFamily> currentPlayerArgs = new ArrayList<>();
         Answer<?> answer = invocation -> {
             Method method = invocation.getMethod();
-            if (method.getName().equals("nextPlayer") && Arrays.equals(method.getParameterTypes(), new Class[] {RobotFamily.class})) {
+            if (method.getName().equals("nextPlayer") && Arrays.equals(method.getParameterTypes(), new Class[]{RobotFamily.class})) {
                 RobotFamily currentPlayer = invocation.getArgument(0);
                 return currentPlayer == RobotFamily.SQUARE_RED ? RobotFamily.SQUARE_BLUE : RobotFamily.SQUARE_RED;
-            } else if (method.getName().equals("dropStone") && Arrays.equals(method.getParameterTypes(), new Class[] {int.class, RobotFamily[][].class, RobotFamily.class})) {
+            } else if (method.getName().equals("dropStone") && Arrays.equals(method.getParameterTypes(), new Class[]{int.class, RobotFamily[][].class, RobotFamily.class})) {
                 columnArgs.add(invocation.getArgument(0));
                 stonesArgs.add(invocation.getArgument(1));
                 currentPlayerArgs.add(invocation.getArgument(2));
                 return null;
-            } else if (method.getName().equals("testWinConditions") && Arrays.equals(method.getParameterTypes(), new Class[] {RobotFamily[][].class, RobotFamily.class})) {
+            } else if (method.getName().equals("testWinConditions") && Arrays.equals(method.getParameterTypes(), new Class[]{RobotFamily[][].class, RobotFamily.class})) {
                 return currentPlayerArgs.size() >= 5;
             } else {
                 return invocation.callRealMethod();
@@ -612,14 +594,14 @@ public class ConnectFourTest {
         };
         int worldHeight = 5;
         int worldWidth = 5;
-        try (MockedStatic<FourWins> mockedStatic = Mockito.mockStatic(FourWins.class, answer)) {
-            FourWins fourWins = new FourWins(worldWidth, worldHeight);
-            InputHandler inputHandler = fourWins.getInputHandler();
+        try (MockedStatic<ConnectFour> mockedStatic = Mockito.mockStatic(ConnectFour.class, answer)) {
+            ConnectFour ConnectFour = new ConnectFour(worldWidth, worldHeight);
+            ConnectFourInputHandler inputHandler = ConnectFour.getInputHandler();
             for (int i = 0; i < 10; i++) {
                 inputHandler.addInput(i % worldWidth);
             }
 
-            fourWins.startGame();
+            ConnectFour.startGame();
         }
 
         RobotFamily[][] stones = null;
@@ -653,12 +635,12 @@ public class ConnectFourTest {
         List<RobotFamily> currentPlayerArgs = new ArrayList<>();
         Answer<?> answer = invocation -> {
             Method method = invocation.getMethod();
-            if (method.getName().equals("nextPlayer") && Arrays.equals(method.getParameterTypes(), new Class[] {RobotFamily.class})) {
+            if (method.getName().equals("nextPlayer") && Arrays.equals(method.getParameterTypes(), new Class[]{RobotFamily.class})) {
                 RobotFamily currentPlayer = invocation.getArgument(0);
                 return currentPlayer == RobotFamily.SQUARE_RED ? RobotFamily.SQUARE_BLUE : RobotFamily.SQUARE_RED;
-            } else if (method.getName().equals("dropStone") && Arrays.equals(method.getParameterTypes(), new Class[] {int.class, RobotFamily[][].class, RobotFamily.class})) {
+            } else if (method.getName().equals("dropStone") && Arrays.equals(method.getParameterTypes(), new Class[]{int.class, RobotFamily[][].class, RobotFamily.class})) {
                 return null;
-            } else if (method.getName().equals("testWinConditions") && Arrays.equals(method.getParameterTypes(), new Class[] {RobotFamily[][].class, RobotFamily.class})) {
+            } else if (method.getName().equals("testWinConditions") && Arrays.equals(method.getParameterTypes(), new Class[]{RobotFamily[][].class, RobotFamily.class})) {
                 stonesArgs.add(invocation.getArgument(0));
                 currentPlayerArgs.add(invocation.getArgument(1));
                 return currentPlayerArgs.size() >= 5;
@@ -668,14 +650,14 @@ public class ConnectFourTest {
         };
         int worldHeight = 5;
         int worldWidth = 5;
-        try (MockedStatic<FourWins> mockedStatic = Mockito.mockStatic(FourWins.class, answer)) {
-            FourWins fourWins = new FourWins(worldWidth, worldHeight);
-            InputHandler inputHandler = fourWins.getInputHandler();
+        try (MockedStatic<ConnectFour> mockedStatic = Mockito.mockStatic(ConnectFour.class, answer)) {
+            ConnectFour ConnectFour = new ConnectFour(worldWidth, worldHeight);
+            ConnectFourInputHandler inputHandler = ConnectFour.getInputHandler();
             for (int i = 0; i < 10; i++) {
                 inputHandler.addInput(i % worldWidth);
             }
 
-            fourWins.startGame();
+            ConnectFour.startGame();
         }
 
         RobotFamily[][] stones = null;
@@ -716,7 +698,7 @@ public class ConnectFourTest {
             Context context = baseContextBuilder
                 .add("column", column)
                 .build();
-            int actual = callObject(() -> FourWins.getDestinationRow(column, stones), context, result ->
+            int actual = callObject(() -> ConnectFour.getNumberOfSteps(stones, column), context, result ->
                 "An exception occurred while invoking method getDestinationRow");
             assertEquals(expected, actual, context, result ->
                 "Method getDestinationRow returned an incorrect value");
@@ -724,7 +706,7 @@ public class ConnectFourTest {
     }
 
     private void testWinVAnforderung(String methodName) {
-        List<CtLoop> loops = getCtMethod(FourWins.class, methodName, RobotFamily[][].class, RobotFamily.class)
+        List<CtLoop> loops = getCtMethod(ConnectFour.class, methodName, RobotFamily[][].class, RobotFamily.class)
             .filterChildren(CtLoop.class::isInstance)
             .list();
 
