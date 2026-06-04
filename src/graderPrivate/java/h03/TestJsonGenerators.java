@@ -4,10 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fopbot.RobotFamily;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledIf;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,10 +12,21 @@ import java.util.List;
 
 import static h03.TestConstants.TEST_ITERATIONS;
 
-@DisabledIf("org.tudalgo.algoutils.tutor.general.Utils#isJagrRun()")
 public class TestJsonGenerators {
-    @Test
-    public void generateTribonacciNumbersTestPushRandomNumbers() throws IOException {
+    public static void main(String[] args) throws IOException {
+        // generate everything
+        generateTribonacciNumbersTestPushRandomNumbers();
+        generateTribonacciNumbersTestCalculateNextFibonacciRandomNumbers(true);
+        generateTribonacciNumbersTestCalculateNextFibonacciRandomNumbers(false);
+        generateTribonacciNumbersTestFibonacciRandomNumbers(true);
+        generateTribonacciNumbersTestFibonacciRandomNumbers(false);
+        generateValidateInputRandomCases();
+        generateFourWinsTestGameBoard();
+        generateFourWinsTestGameBoardWin(true);
+        generateFourWinsTestGameBoardWin(false);
+    }
+
+    public static void generateTribonacciNumbersTestPushRandomNumbers() throws IOException {
         TestUtils.generateJsonTestData(
             (mapper, index, rnd) -> {
                 final ObjectNode objectNode = mapper.createObjectNode();
@@ -44,9 +51,7 @@ public class TestJsonGenerators {
         );
     }
 
-    @ParameterizedTest
-    @ValueSource(booleans = {true, false})
-    public void generateTribonacciNumbersTestCalculateNextFibonacciRandomNumbers(
+    public static void generateTribonacciNumbersTestCalculateNextFibonacciRandomNumbers(
         final boolean twoPositivesOnly
     ) throws IOException {
         TestUtils.generateJsonTestData(
@@ -89,9 +94,7 @@ public class TestJsonGenerators {
         return Math.round((Math.pow(phi, n) - Math.pow(psi, n)) / sqrt5);
     }
 
-    @ParameterizedTest
-    @ValueSource(booleans = {true, false})
-    public void generateTribonacciNumbersTestFibonacciRandomNumbers(
+    public static void generateTribonacciNumbersTestFibonacciRandomNumbers(
         final boolean smallerThanTwo
     ) throws IOException {
         TestUtils.generateJsonTestData(
@@ -112,9 +115,7 @@ public class TestJsonGenerators {
         );
     }
 
-
-    @Test
-    public void generateValidateInputRandomCases() throws IOException {
+    public static void generateValidateInputRandomCases() throws IOException {
         TestUtils.generateJsonTestData(
             (mapper, index, rnd) -> {
                 final ObjectNode objectNode = mapper.createObjectNode();
@@ -167,8 +168,7 @@ public class TestJsonGenerators {
         );
     }
 
-    @Test
-    public void generateFourWinsTestGameBoard() throws IOException {
+    public static void generateFourWinsTestGameBoard() throws IOException {
         TestUtils.generateJsonTestData(
             (mapper, index, rnd) -> {
                 int worldHeight = rnd.nextInt(5, 10);
@@ -209,9 +209,7 @@ public class TestJsonGenerators {
         );
     }
 
-    @ParameterizedTest
-    @ValueSource(booleans = {true, false})
-    public void generateFourWinsTestGameBoardWin(boolean horizontal) throws IOException {
+    public static void generateFourWinsTestGameBoardWin(boolean horizontal) throws IOException {
         TestUtils.generateJsonTestData(
             (mapper, index, rnd) -> {
                 int worldHeight = rnd.nextInt(5, 10);
