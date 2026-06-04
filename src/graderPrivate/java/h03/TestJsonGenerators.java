@@ -163,7 +163,7 @@ public class TestJsonGenerators {
                 return objectNode;
             },
             TEST_ITERATIONS,
-            "FourWinsTestValidateInputRandomCases.generated.json"
+            "connect4/validate/randomCases.json"
         );
     }
 
@@ -205,7 +205,7 @@ public class TestJsonGenerators {
                 return objectNode;
             },
             TEST_ITERATIONS,
-            "FourWinsTestGameBoard.generated.json"
+            "connect4/drop/board.json"
         );
     }
 
@@ -260,7 +260,7 @@ public class TestJsonGenerators {
                 return objectNode;
             },
             TEST_ITERATIONS,
-            "FourWinsTestGameBoard" + (horizontal ? "Horizontal" : "Vertical") + "Win.generated.json"
+            "connect4/checkWin/" + (horizontal ? "horizontal" : "vertical") + ".json"
         );
     }
 }

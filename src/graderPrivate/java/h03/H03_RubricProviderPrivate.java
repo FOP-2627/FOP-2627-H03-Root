@@ -132,12 +132,12 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                                 "Methode ist vollständig korrekt implementiert.",
                                 JUnitTestRef.and(
                                     JUnitTestRef.ofMethod(
-                                        () -> ConnectFourTest.class.getDeclaredMethod(
-                                            "testValidateInputEdgeCases", JsonParameterSet.class)
+                                        () -> ConnectFourTest.Validate.class.getDeclaredMethod(
+                                            "edgeCases", JsonParameterSet.class)
                                     ),
                                     JUnitTestRef.ofMethod(
-                                        () -> ConnectFourTest.class.getDeclaredMethod(
-                                            "testValidateInputRandomCases", JsonParameterSet.class)
+                                        () -> ConnectFourTest.Validate.class.getDeclaredMethod(
+                                            "randomCases", JsonParameterSet.class)
                                     )
                                 )
                             )
@@ -154,22 +154,22 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                                     criterion(
                                         "Die Rückgabe ist korrekt, wenn ein freier Slot existiert.",
                                         JUnitTestRef.ofMethod(
-                                            () -> ConnectFourTest.class.getDeclaredMethod(
-                                                "testGetDestinationRowFreeSlot", JsonParameterSet.class)
+                                            () -> ConnectFourTest.Drop.NumSteps.class.getDeclaredMethod(
+                                                "freeSlot", JsonParameterSet.class)
                                         )
                                     ),
                                     criterion(
                                         "Die Rückgabe ist korrekt, wenn KEIN freier Slot existiert.",
                                         JUnitTestRef.ofMethod(
-                                            () -> ConnectFourTest.class.getDeclaredMethod(
-                                                "testGetDestinationRowBlockedSlot", JsonParameterSet.class)
+                                            () -> ConnectFourTest.Drop.NumSteps.class.getDeclaredMethod(
+                                                "blockedSlot", JsonParameterSet.class)
                                         )
                                     ),
                                     criterion(
                                         "Verbindliche Anforderung 'genau eine Schleife' wurde verletzt.",
                                         JUnitTestRef.ofMethod(
-                                            () -> ConnectFourTest.class.getDeclaredMethod(
-                                                "testGetDestinationRowVAnforderung")
+                                            () -> ConnectFourTest.Drop.NumSteps.class.getDeclaredMethod(
+                                                "requirements")
                                         ),
                                         -1
                                     )).build(),
@@ -180,28 +180,28 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                                     criterion(
                                         "Robot wird mit korrekten Parametern erstellt.",
                                         JUnitTestRef.ofMethod(
-                                            () -> ConnectFourTest.class.getDeclaredMethod(
-                                                "testDropStoneRobotCorrect", JsonParameterSet.class)
+                                            () -> ConnectFourTest.Drop.DropStone.class.getDeclaredMethod(
+                                                "robotCreation", JsonParameterSet.class)
                                         )
                                     ),
                                     criterion(
                                         "getNumberOfSteps wird korrekt aufgerufen.",
                                         JUnitTestRef.ofMethod(
-                                            () -> ConnectFourTest.class.getDeclaredMethod(
-                                                "testDropStoneCallsGetDestinationRow")
+                                            () -> ConnectFourTest.Drop.DropStone.class.getDeclaredMethod(
+                                                "numStepsCall")
                                         )
                                     ),
                                     criterion(
                                         "Robot führt die korrekte Bewegung aus.",
                                         JUnitTestRef.ofMethod(
-                                            () -> ConnectFourTest.class.getDeclaredMethod(
-                                                "testDropStoneMovementCorrect", JsonParameterSet.class)
+                                            () -> ConnectFourTest.Drop.DropStone.class.getDeclaredMethod(
+                                                "robotMove", JsonParameterSet.class)
                                         )
                                     ),
                                     criterion(
                                         "Verbindliche Anforderung 'genau eine Schleife' wurde verletzt.",
                                         JUnitTestRef.ofMethod(
-                                            () -> ConnectFourTest.class.getDeclaredMethod("testDropStoneVAnforderung")
+                                            () -> ConnectFourTest.Drop.DropStone.class.getDeclaredMethod("requirements")
                                         ),
                                         -1
                                     )).build()
@@ -215,11 +215,16 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                                 .addChildCriteria(
                                     criterion(
                                         "Methode gibt korrekt true oder false abhängig vom Parameter zurück.",
-                                        1
+                                        JUnitTestRef.ofMethod(
+                                            () -> ConnectFourTest.CheckWin.InLine.class.getDeclaredMethod("check")
+                                        )
                                     ),
                                     criterion(
-                                        "Methode nutzt genau eine Schleifen.",
-                                        1
+                                        "Methode nutzt genau eine Schleife.",
+                                        JUnitTestRef.ofMethod(
+                                            () -> ConnectFourTest.CheckWin.InLine.class.getDeclaredMethod("requirements")
+                                        ),
+                                        -1
                                     )
                                 ).minPoints(0).build(),
                             Criterion.builder()
@@ -228,19 +233,22 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                                     criterion(
                                         "Methode erkennt richtige horizontale Steinfolgen.",
                                         JUnitTestRef.ofMethod(
-                                            () -> ConnectFourTest.class.getDeclaredMethod(
-                                                "testTestWinHorizontal", JsonParameterSet.class)
+                                            () -> ConnectFourTest.CheckWin.Horizontal.class.getDeclaredMethod(
+                                                "goodInput", JsonParameterSet.class)
                                         ),
                                         2
                                     ),
                                     criterion(
                                         "Methode ruft testAllInLine korrekt auf.",
+                                        JUnitTestRef.ofMethod(
+                                            () -> ConnectFourTest.CheckWin.Horizontal.class.getDeclaredMethod("inLineCall")
+                                        ),
                                         2
                                     ),
                                     criterion(
                                         "Methode erkennt keine falschen Steinfolgen.",
                                         JUnitTestRef.ofMethod(
-                                            () -> ConnectFourTest.class.getDeclaredMethod("testTestWinHorizontalVAnforderung2")
+                                            () -> ConnectFourTest.CheckWin.Horizontal.class.getDeclaredMethod("badInput")
                                         ),
                                         -2
                                     )
@@ -251,16 +259,16 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                                     criterion(
                                         "Methode erkennt richtige vertikale Steinfolgen.",
                                         JUnitTestRef.ofMethod(
-                                            () -> ConnectFourTest.class.getDeclaredMethod(
-                                                "testTestWinVertical", JsonParameterSet.class)
+                                            () -> ConnectFourTest.CheckWin.Vertical.class.getDeclaredMethod(
+                                                "goodInput", JsonParameterSet.class)
                                         ),
                                         2
                                     ),
                                     criterion(
                                         "Methode erkennt keine falschen Steinfolgen.",
                                         JUnitTestRef.ofMethod(
-                                            () -> ConnectFourTest.class.getDeclaredMethod(
-                                                "testTestWinVerticalVAnforderung2")
+                                            () -> ConnectFourTest.CheckWin.Vertical.class.getDeclaredMethod(
+                                                "badInput")
                                         ),
                                         -2
                                     )
@@ -270,10 +278,7 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                                 .addChildCriteria(
                                     criterion(
                                         "Die Rückgabe ist in allen Fällen korrekt.",
-                                        JUnitTestRef.ofMethod(
-                                            () -> ConnectFourTest.class.getDeclaredMethod(
-                                                "testTestWinConditions", int.class)
-                                        )
+                                        JUnitTestRef.ofClass(ConnectFourTest.CheckWin.Conditions.class)
                                     )
                                 ).build()
                         )
@@ -289,8 +294,8 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                                     criterion(
                                         "Die Rückgabe für beide RobotFamily.SQUARE_BLUE und SQUARE_RED korrekt.",
                                         JUnitTestRef.ofMethod(
-                                            () -> ConnectFourTest.class.getDeclaredMethod(
-                                                "testNextPlayer", boolean.class)
+                                            () -> ConnectFourTest.Loop.class.getDeclaredMethod(
+                                                "nextPlayer", boolean.class)
                                         )
                                     )).build()
                             ,
@@ -301,8 +306,8 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                                     criterion(
                                         "Das Spielfeld wird korrekt eingefärbt.",
                                         JUnitTestRef.ofMethod(
-                                            () -> ConnectFourTest.class.getDeclaredMethod(
-                                                "testColorFieldBackground", boolean.class)
+                                            () -> ConnectFourTest.Loop.class.getDeclaredMethod(
+                                                "colorField", boolean.class)
                                         )
                                     )).build()
                             ,
@@ -313,8 +318,8 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                                     criterion(
                                         "Die Ausgabe in die Konsole ist korrekt.",
                                         JUnitTestRef.ofMethod(
-                                            () -> ConnectFourTest.class.getDeclaredMethod(
-                                                "testWriteMessages")
+                                            () -> ConnectFourTest.Loop.class.getDeclaredMethod(
+                                                "writeMessage")
                                         )
                                     )).build()
                             ,
@@ -324,7 +329,10 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                                 .addChildCriteria(
                                     criterion(
                                         "nextPlayer wird mit korrektem Parameter aufgerufen.",
-                                        1
+                                        JUnitTestRef.ofMethod(
+                                            () -> ConnectFourTest.Loop.class.getDeclaredMethod(
+                                                "gameBoardFull")
+                                        )
                                     )).build()
                             ,
                             Criterion.builder()
@@ -333,32 +341,38 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                                 .addChildCriteria(
                                     criterion(
                                         "das Spielstein Array stones und der aktuelle Spieler werden korrekt initialisiert.",
-                                        1
+                                        JUnitTestRef.ofMethod(
+                                            () -> ConnectFourTest.Loop.GameLoop.class.getDeclaredMethod(
+                                                "initialization")
+                                        )
                                     ),
                                     criterion(
                                         "nextPlayer wird mit korrektem Parameter aufgerufen.",
                                         JUnitTestRef.ofMethod(
-                                            () -> ConnectFourTest.class.getDeclaredMethod(
-                                                "testGameLoopCallsNextPlayer")
+                                            () -> ConnectFourTest.Loop.GameLoop.class.getDeclaredMethod(
+                                                "nextPlayerCall")
                                         )
                                     ),
                                     criterion(
                                         "dropStone wird mit korrekten Parametern aufgerufen.",
                                         JUnitTestRef.ofMethod(
-                                            () -> ConnectFourTest.class.getDeclaredMethod(
-                                                "testGameLoopCallsDropStone")
+                                            () -> ConnectFourTest.Loop.GameLoop.class.getDeclaredMethod(
+                                                "dropStoneCall")
                                         )
                                     ),
                                     criterion(
                                         "testWinConditions wird mit korrekten Parametern aufgerufen.",
                                         JUnitTestRef.ofMethod(
-                                            () -> ConnectFourTest.class.getDeclaredMethod(
-                                                "testGameLoopCallsGetWinConditions")
+                                            () -> ConnectFourTest.Loop.GameLoop.class.getDeclaredMethod(
+                                                "conditionCall")
                                         )
                                     ),
                                     criterion(
                                         "writeWinnerMessage oder writeDrawMessage werden zum Spielende im korrekten Fall aufgerufen",
-                                        1
+                                        JUnitTestRef.ofMethod(
+                                            () -> ConnectFourTest.Loop.GameLoop.class.getDeclaredMethod(
+                                                "output")
+                                        )
                                     )).build()
                         )
                         .build()
