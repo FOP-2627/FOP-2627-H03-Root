@@ -224,7 +224,7 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                                         JUnitTestRef.ofMethod(
                                             () -> ConnectFourTest.CheckWin.InLine.class.getDeclaredMethod("requirements")
                                         ),
-                                        -1
+                                        1
                                     )
                                 ).minPoints(0).build(),
                             Criterion.builder()
