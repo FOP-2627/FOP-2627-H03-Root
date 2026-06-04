@@ -1,5 +1,6 @@
 package h03;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -198,6 +199,23 @@ public class TribonacciNumbersTest {
                 r -> "Invalid result."
             );
 
+        }
+    }
+
+    @Nested
+    class GetStartingNumbers {
+        private Integer[] boxIntArray(int[] a) {
+            return Arrays.stream(a).boxed().toArray(Integer[]::new);
+        }
+
+        @Test
+        public void check() {
+            final Integer[] expected = boxIntArray(new int[]{0, 1, 1});
+            final Integer[] actual = boxIntArray(TribonacciNumbers.getStartingNumbers());
+            final var cb = contextBuilder()
+                .add("expected", expected)
+                .add("actual", actual);
+            Assertions2.assertArrayEquals(expected, actual, cb.build(), r -> "");
         }
     }
 

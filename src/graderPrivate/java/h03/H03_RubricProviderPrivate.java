@@ -23,8 +23,10 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                         .minPoints(0)
                         .addChildCriteria(
                             criterion(
-                                "Es wird korrekt ein Array der Länge 3 und den ersten Zahlen der Tribonacci-Folge zurückgegeben.",
-                                1
+                                "Es wird korrekt ein Array der Länge 3 mit den ersten Zahlen der Tribonacci-Folge zurückgegeben.",
+                                JUnitTestRef.ofMethod(
+                                    () -> TribonacciNumbersTest.GetStartingNumbers.class.getDeclaredMethod("check")
+                                )
                             )
                         ).build(),
                     Criterion.builder()
