@@ -36,8 +36,8 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                             criterion(
                                 "Das letzte Element des Ergebnis-Arrays ist das übergebene Element.",
                                 JUnitTestRef.ofMethod(
-                                    () -> TribonacciNumbersTest.class.getDeclaredMethod(
-                                        "testPushLastElementCorrect",
+                                    () -> TribonacciNumbersTest.Push.class.getDeclaredMethod(
+                                        "lastElement",
                                         JsonParameterSet.class
                                     )
                                 )
@@ -45,8 +45,8 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                             criterion(
                                 "Die Elemente des Ergebnis-Arrays sind korrekt.",
                                 JUnitTestRef.ofMethod(
-                                    () -> TribonacciNumbersTest.class.getDeclaredMethod(
-                                        "testPushAllElementsCorrect",
+                                    () -> TribonacciNumbersTest.Push.class.getDeclaredMethod(
+                                        "allElements",
                                         JsonParameterSet.class
                                     )
                                 )
@@ -54,8 +54,8 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                             criterion(
                                 "Das Eingabe-Array wird nicht verändert.",
                                 JUnitTestRef.ofMethod(
-                                    () -> TribonacciNumbersTest.class.getDeclaredMethod(
-                                        "testPushOriginalArrayUnchanged",
+                                    () -> TribonacciNumbersTest.Push.class.getDeclaredMethod(
+                                        "inputUnchanged",
                                         JsonParameterSet.class
                                     )
                                 )
@@ -68,22 +68,22 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                             criterion(
                                 "Das Ergebnis ist korrekt mit zwei positiven Zahlen.",
                                 JUnitTestRef.ofMethod(
-                                    () -> TribonacciNumbersTest.class.getDeclaredMethod(
-                                        "testCalculateNextFibonacciPositiveOnly", JsonParameterSet.class)
+                                    () -> TribonacciNumbersTest.CalcNext.class.getDeclaredMethod(
+                                        "positiveOnly", JsonParameterSet.class)
                                 )
                             ),
                             criterion(
                                 "Das Ergebnis ist korrekt mit beliebigen Eingaben.",
                                 JUnitTestRef.ofMethod(
-                                    () -> TribonacciNumbersTest.class.getDeclaredMethod(
-                                        "testCalculateNextFibonacciAllNumbers", JsonParameterSet.class)
+                                    () -> TribonacciNumbersTest.CalcNext.class.getDeclaredMethod(
+                                        "arbitraryInput", JsonParameterSet.class)
                                 )
                             ),
                             criterion(
                                 "Eine verbindliche Anforderung wurde verletzt.",
                                 JUnitTestRef.ofMethod(
-                                    () -> TribonacciNumbersTest.class.getDeclaredMethod(
-                                        "testCalculateNextFibonacciVanforderungen", JsonParameterSet.class)
+                                    () -> TribonacciNumbersTest.CalcNext.class.getDeclaredMethod(
+                                        "requirements", JsonParameterSet.class)
                                 ),
                                 -1
                             )).build(),
@@ -94,27 +94,26 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                             criterion(
                                 "Das Ergebnis ist korrekt für n < 3.",
                                 JUnitTestRef.ofMethod(
-                                    () -> TribonacciNumbersTest.class.getDeclaredMethod(
-                                        "testFibonacciSmallerThanTwo", JsonParameterSet.class)
+                                    () -> TribonacciNumbersTest.Tribonacci.class.getDeclaredMethod(
+                                        "smallerThanTwo", JsonParameterSet.class)
                                 )
                             ),
                             criterion(
                                 "Das Ergebnis ist korrekt für n >= 2.",
                                 JUnitTestRef.ofMethod(
-                                    () -> TribonacciNumbersTest.class.getDeclaredMethod(
-                                        "testFibonacciBigNumbers", JsonParameterSet.class)
+                                    () -> TribonacciNumbersTest.Tribonacci.class.getDeclaredMethod(
+                                        "full", JsonParameterSet.class)
                                 )
                             ),
                             criterion(
                                 "Eine Verbindliche Anforderung wurde verletzt.",
                                 JUnitTestRef.and(
                                     JUnitTestRef.ofMethod(
-                                        () -> TribonacciNumbersTest.class.getDeclaredMethod(
-                                            "testFibonacciVanforderungen", JsonParameterSet.class)
+                                        () -> TribonacciNumbersTest.Tribonacci.class.getDeclaredMethod(
+                                            "requirements", JsonParameterSet.class)
                                     ),
                                     JUnitTestRef.ofMethod(
-                                        () -> TribonacciNumbersTest.class.getDeclaredMethod(
-                                            "testFibonacciNonIterativeVanforderungen")
+                                        () -> TribonacciNumbersTest.Tribonacci.class.getDeclaredMethod("requirementsNonIterative")
                                     )
                                 ),
                                 -1

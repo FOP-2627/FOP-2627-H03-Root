@@ -40,7 +40,7 @@ public class TestJsonGenerators {
                 return objectNode;
             },
             TEST_ITERATIONS,
-            "TribonacciNumbersTestPushRandomNumbers.generated.json"
+            "trib/push/randomNumbers.json"
         );
     }
 
@@ -62,7 +62,6 @@ public class TestJsonGenerators {
                 final ArrayNode inputArrayNode = mapper.createArrayNode();
                 input.forEach(inputArrayNode::add);
                 objectNode.set("array", inputArrayNode);
-                System.out.println(input.size());
                 final int nextFibonacci = input.get(input.size() - 1) + input.get(input.size() - 2);
                 input.add(nextFibonacci);
                 final ArrayNode expectedArrayNode = mapper.createArrayNode();
@@ -71,7 +70,7 @@ public class TestJsonGenerators {
                 return objectNode;
             },
             TEST_ITERATIONS,
-            "TribonacciNumbersTestCalculateNextFibonacciRandomNumbers" + (twoPositivesOnly ? "TwoPositiveNumbersOnly" : "") + ".generated.json"
+            "trib/calcNext/randomNumbers" + (twoPositivesOnly ? "Positive" : "") + ".json"
         );
     }
 
@@ -109,7 +108,7 @@ public class TestJsonGenerators {
                 return objectNode;
             },
             smallerThanTwo ? 2 : TEST_ITERATIONS,
-            "TribonacciNumbersTestFibonacciRandomNumbers" + (smallerThanTwo ? "SmallerThanTwo" : "") + ".generated.json"
+            "trib/tribonacci/randomNumbers" + (smallerThanTwo ? "Small" : "") + ".json"
         );
     }
 
