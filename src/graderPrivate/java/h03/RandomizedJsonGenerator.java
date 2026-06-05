@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static h03.TestConstants.TEST_ITERATIONS;
 
@@ -69,23 +70,21 @@ public class RandomizedJsonGenerator {
             );
         }
 
-        public static void genCalcNextNumbers(
-            final boolean twoPositivesOnly
-        ) throws IOException {
+        public static void genCalcNextNumbers(final boolean threePositivesOnly) throws IOException {
             TestUtils.generateJsonTestData(
                 (mapper, index, rnd) -> {
                     final ObjectNode objectNode = mapper.createObjectNode();
                     final List<Integer> input = new ArrayList<>();
-                    for (int i = 0; i < (twoPositivesOnly ? 2 : rnd.nextInt(5, 10)); i++) {
+                    for (int i = 0; i < (threePositivesOnly ? 3 : rnd.nextInt(5, 10)); i++) {
                         input.add(rnd.nextInt(
-                            twoPositivesOnly ? 0 : (int) -2e5,
+                            threePositivesOnly ? 0 : (int) -2e5,
                             (int) 2e5
                         ));
                     }
                     final ArrayNode inputArrayNode = mapper.createArrayNode();
                     input.forEach(inputArrayNode::add);
                     objectNode.set("array", inputArrayNode);
-                    final int nextFibonacci = input.getLast() + input.get(input.size() - 2);
+                    final int nextFibonacci = Stream.of(1, 2, 3).mapToInt(i -> input.get(input.size() - i)).sum();
                     input.add(nextFibonacci);
                     final ArrayNode expectedArrayNode = mapper.createArrayNode();
                     input.forEach(expectedArrayNode::add);
@@ -93,7 +92,7 @@ public class RandomizedJsonGenerator {
                     return objectNode;
                 },
                 TEST_ITERATIONS,
-                "trib/calcNext/randomNumbers" + (twoPositivesOnly ? "Positive" : "") + ".json"
+                "trib/calcNext/randomNumbers" + (threePositivesOnly ? "Positive" : "") + ".json"
             );
         }
 
