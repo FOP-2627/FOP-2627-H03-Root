@@ -31,177 +31,6 @@ import static org.tudalgo.algoutils.tutor.general.assertions.Assertions2.context
 )
 @SkipAfterFirstFailedTest(TestConstants.SKIP_AFTER_FIRST_FAILED_TEST)
 public class TribonacciNumbersTest {
-    /**
-     * Tests the {@link TribonacciNumbers#push(int[], int)} method.
-     *
-     * @param params        The {@link JsonParameterSet} to use for the test.
-     * @param lastOnly      Whether to only test the last element.
-     * @param unchangedOnly Whether to only test that the input array is unchanged. Will not test the result.
-     */
-    private static void testPush(final JsonParameterSet params, final boolean lastOnly, final boolean unchangedOnly) {
-        final List<Integer> input = params.get("array");
-        final int value = params.getInt("value");
-        final List<Integer> expectedArray = params.get("expected result");
-        final var ParamsContext = params.toContext();
-        final var cb = contextBuilder()
-            .add(ParamsContext)
-            .add("Method", "push");
-        final int[] inputArray = input.stream().mapToInt(i -> i).toArray();
-        final int[] result = Assertions2.callObject(
-            () -> TribonacciNumbers.push(
-                inputArray,
-                value
-            ),
-            cb.build(),
-            r -> "An error occurred during execution."
-        );
-        final var actualArray = Arrays.stream(result).boxed().toList();
-        cb.add("actual result", actualArray);
-        if (unchangedOnly) {
-            Assertions2.assertIterableEquals(
-                input,
-                Arrays.stream(inputArray).boxed().toList(),
-                cb.build(),
-                r -> "The input array was changed."
-            );
-            return;
-        }
-        if (lastOnly) {
-            Assertions2.assertEquals(
-                expectedArray.get(expectedArray.size() - 1),
-                actualArray.get(actualArray.size() - 1),
-                cb.build(),
-                r -> "Invalid result."
-            );
-        } else {
-            Assertions2.assertIterableEquals(
-                expectedArray,
-                actualArray,
-                cb.build(),
-                r -> "Invalid result."
-            );
-        }
-    }
-
-    private static void testCalculateNextTribonacci(final JsonParameterSet params, final boolean vanforderung) {
-        try (final var odasMock = Mockito.mockStatic(TribonacciNumbers.class, Answers.CALLS_REAL_METHODS)) {
-            final List<Integer> input = params.get("array");
-            final List<Integer> expectedArray = params.get("expected result");
-            final var ParamsContext = params.toContext();
-            final var cb = contextBuilder()
-                .add(ParamsContext)
-                .add("Method", "calculateNextTribonacci");
-
-            odasMock.when(() -> TribonacciNumbers.push(Mockito.any(), Mockito.anyInt())).thenAnswer(invocation -> {
-                final int[] array = invocation.getArgument(0);
-                final int value = invocation.getArgument(1);
-                final int[] newArray = Arrays.copyOf(array, array.length + 1);
-                newArray[array.length] = value;
-                return newArray;
-            });
-
-            final int[] inputArray = input.stream().mapToInt(i -> i).toArray();
-            final int[] result = Assertions2.callObject(
-                () -> TribonacciNumbers.calculateNextTribonacci(
-                    inputArray
-                ),
-                cb.build(),
-                r -> "An error occurred during execution."
-            );
-            final var actualArray = Arrays.stream(result).boxed().toList();
-            cb.add("actual result", actualArray);
-            if (vanforderung) {
-                Assertions2.assertIterableEquals(
-                    input,
-                    Arrays.stream(inputArray).boxed().toList(),
-                    cb.build(),
-                    r -> "The input array was changed."
-                );
-                odasMock.verify(
-                    () -> TribonacciNumbers.push(
-                        inputArray,
-                        expectedArray.get(expectedArray.size() - 1)
-                    ),
-                    Mockito.atLeastOnce()
-                );
-                return;
-            }
-            Assertions2.assertIterableEquals(
-                expectedArray,
-                actualArray,
-                cb.build(),
-                r -> "Invalid result."
-            );
-
-        }
-    }
-
-    private static void testTribonacci(final JsonParameterSet params, final boolean vanforderung) {
-        try (final var odasMock = Mockito.mockStatic(TribonacciNumbers.class, Answers.CALLS_REAL_METHODS)) {
-            final Integer input = params.get("n");
-            final int expectedresult = params.get("expected result");
-            final List<Integer> referenceArray = params.get("reference array");
-            final var ParamsContext = params.toContext("reference array");
-            final var cb = contextBuilder()
-                .add(ParamsContext)
-                .add("Method", "tribonacci");
-
-            odasMock.when(() -> TribonacciNumbers.push(Mockito.any(), Mockito.anyInt())).thenAnswer(invocation -> {
-                final int[] array = invocation.getArgument(0);
-                final int value = invocation.getArgument(1);
-                final int[] newArray = Arrays.copyOf(array, array.length + 1);
-                newArray[array.length] = value;
-                return newArray;
-            });
-
-            odasMock.when(() -> TribonacciNumbers.calculateNextTribonacci(Mockito.any())).thenAnswer(invocation -> {
-                final int[] array = invocation.getArgument(0);
-                return TribonacciNumbers.push(array, array[array.length - 1] + array[array.length - 2]);
-            });
-
-            final int result = Assertions2.callObject(
-                () -> TribonacciNumbers.tribonacci(
-                    input
-                ),
-                cb.build(),
-                r -> "An error occurred during execution."
-            );
-
-            cb.add("actual result", result);
-            if (vanforderung) {
-                // test calculateFib was used
-                for (int i = 2; i < referenceArray.size(); i++) {
-                    final int finalI = i;
-                    try {
-                        // test for entire array
-                        odasMock.verify(
-                            () -> TribonacciNumbers.calculateNextTribonacci(
-                                referenceArray.subList(0, finalI).stream().mapToInt(j -> j).toArray()
-                            ),
-                            Mockito.atLeastOnce()
-                        );
-                    } catch (final MockitoException e) {
-                        // test for last two elements
-                        odasMock.verify(
-                            () -> TribonacciNumbers.calculateNextTribonacci(
-                                referenceArray.subList(finalI - 2, finalI).stream().mapToInt(j -> j).toArray()
-                            ),
-                            Mockito.atLeastOnce()
-                        );
-                    }
-                }
-                return;
-            }
-            Assertions2.assertEquals(
-                expectedresult,
-                result,
-                cb.build(),
-                r -> "Invalid result."
-            );
-
-        }
-    }
-
     @Nested
     class GetStartingNumbers {
         private Integer[] boxIntArray(int[] a) {
@@ -219,127 +48,315 @@ public class TribonacciNumbersTest {
         }
     }
 
-    @ParameterizedTest
-    @JsonParameterSetTest(value = "TribonacciNumbersTestPushRandomNumbers.generated.json")
-    public void testPushLastElementCorrect(final JsonParameterSet params) {
-        testPush(params, true, false);
+    @Nested
+    class Push {
+        final String input = "generated/trib/push/randomNumbers.json";
+
+        /**
+         * Tests the {@link TribonacciNumbers#push(int[], int)} method.
+         *
+         * @param params        The {@link JsonParameterSet} to use for the test.
+         * @param lastOnly      Whether to only test the last element.
+         * @param unchangedOnly Whether to only test that the input array is unchanged. Will not test the result.
+         */
+        private static void testPush(final JsonParameterSet params, final boolean lastOnly, final boolean unchangedOnly) {
+            final List<Integer> input = params.get("array");
+            final int value = params.getInt("value");
+            final List<Integer> expectedArray = params.get("expected result");
+            final var ParamsContext = params.toContext();
+            final var cb = contextBuilder()
+                .add(ParamsContext)
+                .add("Method", "push");
+            final int[] inputArray = input.stream().mapToInt(i -> i).toArray();
+            final int[] result = Assertions2.callObject(
+                () -> TribonacciNumbers.push(
+                    inputArray,
+                    value
+                ),
+                cb.build(),
+                r -> "An error occurred during execution."
+            );
+            final var actualArray = Arrays.stream(result).boxed().toList();
+            cb.add("actual result", actualArray);
+            if (unchangedOnly) {
+                Assertions2.assertIterableEquals(
+                    input,
+                    Arrays.stream(inputArray).boxed().toList(),
+                    cb.build(),
+                    r -> "The input array was changed."
+                );
+                return;
+            }
+            if (lastOnly) {
+                Assertions2.assertEquals(
+                    expectedArray.getLast(),
+                    actualArray.getLast(),
+                    cb.build(),
+                    r -> "Invalid result."
+                );
+            } else {
+                Assertions2.assertIterableEquals(
+                    expectedArray,
+                    actualArray,
+                    cb.build(),
+                    r -> "Invalid result."
+                );
+            }
+        }
+
+        @ParameterizedTest
+        @JsonParameterSetTest(value = input)
+        public void lastElement(final JsonParameterSet params) {
+            testPush(params, true, false);
+        }
+
+        @ParameterizedTest
+        @JsonParameterSetTest(value = input)
+        public void allElements(final JsonParameterSet params) {
+            testPush(params, false, false);
+        }
+
+        @ParameterizedTest
+        @JsonParameterSetTest(value = input)
+        public void inputUnchanged(final JsonParameterSet params) {
+            testPush(params, false, true);
+        }
     }
 
-    @ParameterizedTest
-    @JsonParameterSetTest(value = "TribonacciNumbersTestPushRandomNumbers.generated.json")
-    public void testPushAllElementsCorrect(final JsonParameterSet params) {
-        testPush(params, false, false);
+    @Nested
+    class CalcNext {
+        final String inputPositive = "generated/trib/calcNext/randomNumbersPositive.json";
+        final String inputArbitrary = "generated/trib/calcNext/randomNumbers.json";
+
+        private static void testCalculateNextTribonacci(final JsonParameterSet params, final boolean vanforderung) {
+            try (final var mock = Mockito.mockStatic(TribonacciNumbers.class, Answers.CALLS_REAL_METHODS)) {
+                final List<Integer> input = params.get("array");
+                final List<Integer> expectedArray = params.get("expected result");
+                final var ParamsContext = params.toContext();
+                final var cb = contextBuilder()
+                    .add(ParamsContext)
+                    .add("Method", "calculateNextTribonacci");
+
+                mock.when(() -> TribonacciNumbers.push(Mockito.any(), Mockito.anyInt())).thenAnswer(invocation -> {
+                    final int[] array = invocation.getArgument(0);
+                    final int value = invocation.getArgument(1);
+                    final int[] newArray = Arrays.copyOf(array, array.length + 1);
+                    newArray[array.length] = value;
+                    return newArray;
+                });
+
+                final int[] inputArray = input.stream().mapToInt(i -> i).toArray();
+                final int[] result = Assertions2.callObject(
+                    () -> TribonacciNumbers.calculateNextTribonacci(
+                        inputArray
+                    ),
+                    cb.build(),
+                    r -> "An error occurred during execution."
+                );
+                final var actualArray = Arrays.stream(result).boxed().toList();
+                cb.add("actual result", actualArray);
+                if (vanforderung) {
+                    Assertions2.assertIterableEquals(
+                        input,
+                        Arrays.stream(inputArray).boxed().toList(),
+                        cb.build(),
+                        r -> "The input array was changed."
+                    );
+                    mock.verify(
+                        () -> TribonacciNumbers.push(
+                            inputArray,
+                            expectedArray.getLast()
+                        ),
+                        Mockito.atLeastOnce()
+                    );
+                    return;
+                }
+                Assertions2.assertIterableEquals(
+                    expectedArray,
+                    actualArray,
+                    cb.build(),
+                    r -> "Invalid result."
+                );
+
+            }
+        }
+
+        @ParameterizedTest
+        @JsonParameterSetTest(value = inputPositive)
+        public void positiveOnly(final JsonParameterSet params) {
+            testCalculateNextTribonacci(params, false);
+        }
+
+        @ParameterizedTest
+        @JsonParameterSetTest(value = inputArbitrary)
+        public void arbitraryInput(final JsonParameterSet params) {
+            testCalculateNextTribonacci(params, false);
+        }
+
+        @ParameterizedTest
+        @JsonParameterSetTest(value = inputArbitrary)
+        public void requirements(final JsonParameterSet params) {
+            testCalculateNextTribonacci(params, true);
+        }
     }
 
-    @ParameterizedTest
-    @JsonParameterSetTest(value = "TribonacciNumbersTestPushRandomNumbers.generated.json")
-    public void testPushOriginalArrayUnchanged(final JsonParameterSet params) {
-        testPush(params, false, true);
-    }
+    @Nested
+    class Tribonacci {
+        final String inputSmall = "generated/trib/tribonacci/randomNumbersSmall.json";
+        final String inputFull = "generated/trib/tribonacci/randomNumbers.json";
 
-    @ParameterizedTest
-    @JsonParameterSetTest(value = "TribonacciNumbersTestCalculateNextTribonacciRandomNumbersTwoPositiveNumbersOnly.generated.json")
-    public void testCalculateNextTribonacciPositiveOnly(final JsonParameterSet params) {
-        testCalculateNextTribonacci(params, false);
-    }
+        private static void testTribonacci(final JsonParameterSet params, final boolean vanforderung) {
+            try (final var mock = Mockito.mockStatic(TribonacciNumbers.class, Answers.CALLS_REAL_METHODS)) {
+                final Integer input = params.get("n");
+                final int expectedResult = params.get("expected result");
+                final List<Integer> referenceArray = params.get("reference array");
+                final var ParamsContext = params.toContext("reference array");
+                final var cb = contextBuilder()
+                    .add(ParamsContext)
+                    .add("Method", "tribonacci");
 
-    @ParameterizedTest
-    @JsonParameterSetTest(value = "TribonacciNumbersTestCalculateNextTribonacciRandomNumbers.generated.json")
-    public void testCalculateNextTribonacciAllNumbers(final JsonParameterSet params) {
-        testCalculateNextTribonacci(params, false);
-    }
+                mock.when(() -> TribonacciNumbers.push(Mockito.any(), Mockito.anyInt())).thenAnswer(invocation -> {
+                    final int[] array = invocation.getArgument(0);
+                    final int value = invocation.getArgument(1);
+                    final int[] newArray = Arrays.copyOf(array, array.length + 1);
+                    newArray[array.length] = value;
+                    return newArray;
+                });
 
-    @ParameterizedTest
-    @JsonParameterSetTest(value = "TribonacciNumbersTestCalculateNextTribonacciRandomNumbers.generated.json")
-    public void testCalculateNextTribonacciVanforderungen(final JsonParameterSet params) {
-        testCalculateNextTribonacci(params, true);
-    }
+                mock.when(() -> TribonacciNumbers.calculateNextTribonacci(Mockito.any())).thenAnswer(invocation -> {
+                    final int[] array = invocation.getArgument(0);
+                    return TribonacciNumbers.push(array, array[array.length - 1] + array[array.length - 2]);
+                });
 
-    @ParameterizedTest
-    @JsonParameterSetTest(value = "TribonacciNumbersTestTribonacciRandomNumbers.generated.json")
-    public void testTribonacciVanforderungen(final JsonParameterSet params) {
-        testTribonacci(params, true);
-    }
+                final int result = Assertions2.callObject(
+                    () -> TribonacciNumbers.tribonacci(
+                        input
+                    ),
+                    cb.build(),
+                    r -> "An error occurred during execution."
+                );
 
-    @Test
-    public void testTribonacciNonIterativeVanforderungen() throws NoSuchMethodException {
-        // test exactly one for loop
-        final var ml = BasicMethodLink.of(TribonacciNumbers.class.getDeclaredMethod("tribonacci", int.class));
-        final var ctElement = ml.getCtElement();
-        final var cb = contextBuilder()
-            .add("Method", "tribonacci");
-        Assertions4.assertIsNotRecursively(
-            ctElement,
-            cb.build(),
-            r -> "The method should not have any recursive calls."
-        );
-        final var forLoops = ctElement.filterChildren(
-            c -> c instanceof spoon.reflect.code.CtFor
-                || c instanceof spoon.reflect.code.CtForEach
-                || c instanceof spoon.reflect.code.CtWhile
-                || c instanceof spoon.reflect.code.CtDo
-        ).list();
-        Assertions2.assertEquals(
-            1,
-            forLoops.size(),
-            cb.build(),
-            r -> "The method should contain exactly one for loop."
-        );
-        // test exactly one variable declaration
-        final var variableDeclarations = ctElement.filterChildren(
-            c -> c instanceof CtLocalVariable<?>
-        ).list(CtLocalVariable.class);
-        cb.add("variable declarations", variableDeclarations);
-        Assertions2.assertEquals(
-            2,
-            variableDeclarations.size(),
-            cb.build(),
-            r -> "The method should contain exactly two variable declarations."
-        );
-        // one of type int[] and one of type int
-        Assertions2.assertTrue(
-            variableDeclarations.stream().anyMatch(
-                c -> c.getType().toString().equals("int[]")
-            ),
-            cb.build(),
-            r -> "The method should declare exactly one variable of type int[]."
-        );
-        Assertions2.assertTrue(
-            variableDeclarations.stream().anyMatch(
-                c -> c.getType().toString().equals("int")
-            ),
-            cb.build(),
-            r -> "The method should contain exactly one variable of type int."
-        );
-        // test no Method calls except for calculateNextTribonacci
-        final var methodCalls = ctElement.filterChildren(
-            c -> c instanceof spoon.reflect.code.CtInvocation<?>
-        ).list(CtInvocation.class);
-        cb.add("method calls", methodCalls);
-        Assertions2.assertEquals(
-            1,
-            methodCalls.size(),
-            cb.build(),
-            r -> "The method should contain exactly one method call."
-        );
-        final var methodCall = methodCalls.get(0);
-        Assertions2.assertEquals(
-            "calculateNextTribonacci",
-            methodCall.getExecutable().getSimpleName(),
-            cb.build(),
-            r -> "The method should only call calculateNextTribonacci."
-        );
-    }
+                cb.add("actual result", result);
+                if (vanforderung) {
+                    // test calculateFib was used
+                    for (int i = 2; i < referenceArray.size(); i++) {
+                        final int finalI = i;
+                        try {
+                            // test for entire array
+                            mock.verify(
+                                () -> TribonacciNumbers.calculateNextTribonacci(
+                                    referenceArray.subList(0, finalI).stream().mapToInt(j -> j).toArray()
+                                ),
+                                Mockito.atLeastOnce()
+                            );
+                        } catch (final MockitoException e) {
+                            // test for last two elements
+                            mock.verify(
+                                () -> TribonacciNumbers.calculateNextTribonacci(
+                                    referenceArray.subList(finalI - 2, finalI).stream().mapToInt(j -> j).toArray()
+                                ),
+                                Mockito.atLeastOnce()
+                            );
+                        }
+                    }
+                    return;
+                }
+                Assertions2.assertEquals(
+                    expectedResult,
+                    result,
+                    cb.build(),
+                    r -> "Invalid result."
+                );
 
-    @ParameterizedTest
-    @JsonParameterSetTest(value = "TribonacciNumbersTestTribonacciRandomNumbersSmallerThanTwo.generated.json")
-    public void testTribonacciSmallerThanTwo(final JsonParameterSet params) {
-        testTribonacci(params, false);
-    }
+            }
+        }
 
-    @ParameterizedTest
-    @JsonParameterSetTest(value = "TribonacciNumbersTestTribonacciRandomNumbers.generated.json")
-    public void testTribonacciBigNumbers(final JsonParameterSet params) {
-        testTribonacci(params, false);
+        @ParameterizedTest
+        @JsonParameterSetTest(value = inputSmall)
+        public void smallerThanTwo(final JsonParameterSet params) {
+            testTribonacci(params, false);
+        }
+
+        @ParameterizedTest
+        @JsonParameterSetTest(value = inputFull)
+        public void full(final JsonParameterSet params) {
+            testTribonacci(params, false);
+        }
+
+        @ParameterizedTest
+        @JsonParameterSetTest(value = inputFull)
+        public void requirements(final JsonParameterSet params) {
+            testTribonacci(params, true);
+        }
+
+        @Test
+        public void requirementsNonIterative() throws NoSuchMethodException {
+            // test exactly one for loop
+            final var ml = BasicMethodLink.of(TribonacciNumbers.class.getDeclaredMethod("tribonacci", int.class));
+            final var ctElement = ml.getCtElement();
+            final var cb = contextBuilder()
+                .add("Method", "tribonacci");
+            Assertions4.assertIsNotRecursively(
+                ctElement,
+                cb.build(),
+                r -> "The method should not have any recursive calls."
+            );
+            final var forLoops = ctElement.filterChildren(
+                c -> c instanceof spoon.reflect.code.CtFor
+                    || c instanceof spoon.reflect.code.CtForEach
+                    || c instanceof spoon.reflect.code.CtWhile
+                    || c instanceof spoon.reflect.code.CtDo
+            ).list();
+            Assertions2.assertEquals(
+                1,
+                forLoops.size(),
+                cb.build(),
+                r -> "The method should contain exactly one for loop."
+            );
+            // test exactly one variable declaration
+            final var variableDeclarations = ctElement.filterChildren(
+                c -> c instanceof CtLocalVariable<?>
+            ).list(CtLocalVariable.class);
+            cb.add("variable declarations", variableDeclarations);
+            Assertions2.assertEquals(
+                2,
+                variableDeclarations.size(),
+                cb.build(),
+                r -> "The method should contain exactly two variable declarations."
+            );
+            // one of type int[] and one of type int
+            Assertions2.assertTrue(
+                variableDeclarations.stream().anyMatch(
+                    c -> c.getType().toString().equals("int[]")
+                ),
+                cb.build(),
+                r -> "The method should declare exactly one variable of type int[]."
+            );
+            Assertions2.assertTrue(
+                variableDeclarations.stream().anyMatch(
+                    c -> c.getType().toString().equals("int")
+                ),
+                cb.build(),
+                r -> "The method should contain exactly one variable of type int."
+            );
+            // test no Method calls except for calculateNextTribonacci
+            final var methodCalls = ctElement.filterChildren(
+                c -> c instanceof spoon.reflect.code.CtInvocation<?>
+            ).list(CtInvocation.class);
+            cb.add("method calls", methodCalls);
+            Assertions2.assertEquals(
+                1,
+                methodCalls.size(),
+                cb.build(),
+                r -> "The method should contain exactly one method call."
+            );
+            final var methodCall = methodCalls.getFirst();
+            Assertions2.assertEquals(
+                "calculateNextTribonacci",
+                methodCall.getExecutable().getSimpleName(),
+                cb.build(),
+                r -> "The method should only call calculateNextTribonacci."
+            );
+        }
     }
 }
