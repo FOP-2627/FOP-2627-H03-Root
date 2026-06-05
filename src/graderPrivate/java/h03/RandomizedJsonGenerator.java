@@ -85,7 +85,7 @@ public class RandomizedJsonGenerator {
                     final ArrayNode inputArrayNode = mapper.createArrayNode();
                     input.forEach(inputArrayNode::add);
                     objectNode.set("array", inputArrayNode);
-                    final int nextFibonacci = input.get(input.size() - 1) + input.get(input.size() - 2);
+                    final int nextFibonacci = input.getLast() + input.get(input.size() - 2);
                     input.add(nextFibonacci);
                     final ArrayNode expectedArrayNode = mapper.createArrayNode();
                     input.forEach(expectedArrayNode::add);

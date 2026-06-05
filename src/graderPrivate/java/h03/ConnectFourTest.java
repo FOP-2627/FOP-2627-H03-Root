@@ -2,7 +2,6 @@ package h03;
 
 import fopbot.*;
 import h03.template.ConnectFourInputHandler;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -245,8 +244,8 @@ public class ConnectFourTest {
                     assertEquals(1, robots.size(), context, result ->
                         "Unexpected number of robots in world");
 
-                    RobotTrace trace = World.getGlobalWorld().getTrace(robots.get(0));
-                    Robot robot = trace.getTransitions().get(0).robot;
+                    RobotTrace trace = World.getGlobalWorld().getTrace(robots.getFirst());
+                    Robot robot = trace.getTransitions().getFirst().robot;
                     assertEquals(col, robot.getX(), context, result ->
                         "Robot was initialized with incorrect x coordinate");
                     assertEquals(worldHeight - 1, robot.getY(), context, result ->
@@ -313,7 +312,7 @@ public class ConnectFourTest {
                     assertEquals(1, robots.size(), context, result ->
                         "Unexpected number of robots in world");
 
-                    List<Transition> transitions = World.getGlobalWorld().getTrace(robots.get(0)).getTransitions();
+                    List<Transition> transitions = World.getGlobalWorld().getTrace(robots.getFirst()).getTransitions();
                     int expectedTransitionsSize = worldHeight - 1 - firstFreeIndex.get(col) + 3;
                     for (int i = 0; i < expectedTransitionsSize; i++) {
                         Transition transition = transitions.get(i);

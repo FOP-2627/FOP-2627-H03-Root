@@ -89,8 +89,8 @@ public class TribonacciNumbersTest {
             }
             if (lastOnly) {
                 Assertions2.assertEquals(
-                    expectedArray.get(expectedArray.size() - 1),
-                    actualArray.get(actualArray.size() - 1),
+                    expectedArray.getLast(),
+                    actualArray.getLast(),
                     cb.build(),
                     r -> "Invalid result."
                 );
@@ -129,7 +129,7 @@ public class TribonacciNumbersTest {
         final String inputArbitrary = "generated/trib/calcNext/randomNumbers.json";
 
         private static void testCalculateNextTribonacci(final JsonParameterSet params, final boolean vanforderung) {
-            try (final var odasMock = Mockito.mockStatic(TribonacciNumbers.class, Answers.CALLS_REAL_METHODS)) {
+            try (final var mock = Mockito.mockStatic(TribonacciNumbers.class, Answers.CALLS_REAL_METHODS)) {
                 final List<Integer> input = params.get("array");
                 final List<Integer> expectedArray = params.get("expected result");
                 final var ParamsContext = params.toContext();
@@ -137,7 +137,7 @@ public class TribonacciNumbersTest {
                     .add(ParamsContext)
                     .add("Method", "calculateNextTribonacci");
 
-                odasMock.when(() -> TribonacciNumbers.push(Mockito.any(), Mockito.anyInt())).thenAnswer(invocation -> {
+                mock.when(() -> TribonacciNumbers.push(Mockito.any(), Mockito.anyInt())).thenAnswer(invocation -> {
                     final int[] array = invocation.getArgument(0);
                     final int value = invocation.getArgument(1);
                     final int[] newArray = Arrays.copyOf(array, array.length + 1);
@@ -162,10 +162,10 @@ public class TribonacciNumbersTest {
                         cb.build(),
                         r -> "The input array was changed."
                     );
-                    odasMock.verify(
+                    mock.verify(
                         () -> TribonacciNumbers.push(
                             inputArray,
-                            expectedArray.get(expectedArray.size() - 1)
+                            expectedArray.getLast()
                         ),
                         Mockito.atLeastOnce()
                     );
@@ -206,16 +206,16 @@ public class TribonacciNumbersTest {
         final String inputFull = "generated/trib/tribonacci/randomNumbers.json";
 
         private static void testTribonacci(final JsonParameterSet params, final boolean vanforderung) {
-            try (final var odasMock = Mockito.mockStatic(TribonacciNumbers.class, Answers.CALLS_REAL_METHODS)) {
+            try (final var mock = Mockito.mockStatic(TribonacciNumbers.class, Answers.CALLS_REAL_METHODS)) {
                 final Integer input = params.get("n");
-                final int expectedresult = params.get("expected result");
+                final int expectedResult = params.get("expected result");
                 final List<Integer> referenceArray = params.get("reference array");
                 final var ParamsContext = params.toContext("reference array");
                 final var cb = contextBuilder()
                     .add(ParamsContext)
                     .add("Method", "tribonacci");
 
-                odasMock.when(() -> TribonacciNumbers.push(Mockito.any(), Mockito.anyInt())).thenAnswer(invocation -> {
+                mock.when(() -> TribonacciNumbers.push(Mockito.any(), Mockito.anyInt())).thenAnswer(invocation -> {
                     final int[] array = invocation.getArgument(0);
                     final int value = invocation.getArgument(1);
                     final int[] newArray = Arrays.copyOf(array, array.length + 1);
@@ -223,7 +223,7 @@ public class TribonacciNumbersTest {
                     return newArray;
                 });
 
-                odasMock.when(() -> TribonacciNumbers.calculateNextTribonacci(Mockito.any())).thenAnswer(invocation -> {
+                mock.when(() -> TribonacciNumbers.calculateNextTribonacci(Mockito.any())).thenAnswer(invocation -> {
                     final int[] array = invocation.getArgument(0);
                     return TribonacciNumbers.push(array, array[array.length - 1] + array[array.length - 2]);
                 });
@@ -243,7 +243,7 @@ public class TribonacciNumbersTest {
                         final int finalI = i;
                         try {
                             // test for entire array
-                            odasMock.verify(
+                            mock.verify(
                                 () -> TribonacciNumbers.calculateNextTribonacci(
                                     referenceArray.subList(0, finalI).stream().mapToInt(j -> j).toArray()
                                 ),
@@ -251,7 +251,7 @@ public class TribonacciNumbersTest {
                             );
                         } catch (final MockitoException e) {
                             // test for last two elements
-                            odasMock.verify(
+                            mock.verify(
                                 () -> TribonacciNumbers.calculateNextTribonacci(
                                     referenceArray.subList(finalI - 2, finalI).stream().mapToInt(j -> j).toArray()
                                 ),
@@ -262,7 +262,7 @@ public class TribonacciNumbersTest {
                     return;
                 }
                 Assertions2.assertEquals(
-                    expectedresult,
+                    expectedResult,
                     result,
                     cb.build(),
                     r -> "Invalid result."
@@ -350,7 +350,7 @@ public class TribonacciNumbersTest {
                 cb.build(),
                 r -> "The method should contain exactly one method call."
             );
-            final var methodCall = methodCalls.get(0);
+            final var methodCall = methodCalls.getFirst();
             Assertions2.assertEquals(
                 "calculateNextTribonacci",
                 methodCall.getExecutable().getSimpleName(),
