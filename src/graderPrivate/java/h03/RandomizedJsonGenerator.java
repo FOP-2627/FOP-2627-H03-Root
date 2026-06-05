@@ -30,21 +30,6 @@ public class RandomizedJsonGenerator {
     }
 
     static class Trib {
-        /**
-         * Reference Fibonacci implementation using the closed-form formula.
-         *
-         * @param n The number to calculate the Fibonacci number for.
-         * @return The Fibonacci number.
-         * @see <a href="https://en.wikipedia.org/wiki/Fibonacci_sequence#Closed-form_expression">Fibonacci Closed-form expression on Wikipedia</a>
-         */
-        public static long fib(final int n) {
-            final double sqrt5 = Math.sqrt(5);
-            final double phi = (1 + sqrt5) / 2;
-            final double psi = (1 - sqrt5) / 2;
-
-            return Math.round((Math.pow(phi, n) - Math.pow(psi, n)) / sqrt5);
-        }
-
         public static void genPushNumbers() throws IOException {
             TestUtils.generateJsonTestData(
                 (mapper, index, rnd) -> {
@@ -96,25 +81,21 @@ public class RandomizedJsonGenerator {
             );
         }
 
-        public static void genTribonacciNumbers(
-            final boolean smallerThanTwo
-        ) throws IOException {
+        public static void genTribonacciNumbers(final boolean smallerThanThree) throws IOException {
             TestUtils.generateJsonTestData(
                 (mapper, index, rnd) -> {
-                    final int startIdx = smallerThanTwo ? index : index + 2;
+                    final int startIdx = smallerThanThree ? index : index + 3;
+                    final var trib = Stream.iterate(new int[]{0, 1, 1}, a -> new int[]{a[1], a[2], a[0] + a[1] + a[2]}).limit(startIdx + 1).mapToInt(a -> a[0]).toArray();
                     final ObjectNode objectNode = mapper.createObjectNode();
                     objectNode.put("n", startIdx);
-                    objectNode.put("expected result", fib(startIdx));
+                    objectNode.put("expected result", trib[startIdx]);
                     final ArrayNode refArrayNode = mapper.createArrayNode();
                     for (int i = 0; i <= startIdx; i++) {
-                        refArrayNode.add(fib(i));
+                        refArrayNode.add(trib[i]);
                     }
                     objectNode.set("reference array", refArrayNode);
                     return objectNode;
-                },
-                smallerThanTwo ? 2 : TEST_ITERATIONS,
-                "trib/tribonacci/randomNumbers" + (smallerThanTwo ? "Small" : "") + ".json"
-            );
+                }, smallerThanThree ? 3 : TEST_ITERATIONS, "trib/tribonacci/randomNumbers" + (smallerThanThree ? "Small" : "") + ".json");
         }
     }
 

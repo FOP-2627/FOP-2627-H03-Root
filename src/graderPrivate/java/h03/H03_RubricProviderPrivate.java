@@ -82,7 +82,7 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                                 )
                             ),
                             criterion(
-                                "Eine verbindliche Anforderung wurde verletzt.",
+                                "Die verbindlichen Anforderungen wurden eingehalten.",
                                 JUnitTestRef.ofMethod(
                                     () -> TribonacciNumbersTest.CalcNext.class.getDeclaredMethod(
                                         "requirements",
@@ -106,7 +106,7 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                                 )
                             ),
                             criterion(
-                                "Das Ergebnis ist korrekt für n >= 2.",
+                                "Das Ergebnis ist korrekt für n >= 3.",
                                 JUnitTestRef.ofMethod(
                                     () -> TribonacciNumbersTest.Tribonacci.class.getDeclaredMethod(
                                         "full",
@@ -115,18 +115,10 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                                 )
                             ),
                             criterion(
-                                "Eine Verbindliche Anforderung wurde verletzt.",
-                                JUnitTestRef.and(
-                                    JUnitTestRef.ofMethod(
-                                        () -> TribonacciNumbersTest.Tribonacci.class.getDeclaredMethod(
-                                            "requirements",
-                                            JsonParameterSet.class
-                                        )
-                                    ),
-                                    JUnitTestRef.ofMethod(
-                                        () -> TribonacciNumbersTest.Tribonacci.class.getDeclaredMethod(
-                                            "requirementsNonIterative"
-                                        )
+                                "Die verbindlichen Anforderungen wurden eingehalten.",
+                                JUnitTestRef.ofMethod(
+                                    () -> TribonacciNumbersTest.Tribonacci.class.getDeclaredMethod(
+                                        "requirements"
                                     )
                                 ),
                                 -1
@@ -185,7 +177,7 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                                         )
                                     ),
                                     criterion(
-                                        "Verbindliche Anforderung 'genau eine Schleife' wurde verletzt.",
+                                        "Die verbindliche Anforderung 'genau eine Schleife' wurde eingehalten.",
                                         JUnitTestRef.ofMethod(
                                             () -> ConnectFourTest.Drop.NumSteps.class.getDeclaredMethod(
                                                 "requirements"
@@ -225,7 +217,7 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                                         )
                                     ),
                                     criterion(
-                                        "Verbindliche Anforderung 'genau eine Schleife' wurde verletzt.",
+                                        "Die verbindliche Anforderung 'genau eine Schleife' wurde eingehalten.",
                                         JUnitTestRef.ofMethod(
                                             () -> ConnectFourTest.Drop.DropStone.class.getDeclaredMethod(
                                                 "requirements"
