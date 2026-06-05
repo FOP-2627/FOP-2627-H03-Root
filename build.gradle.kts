@@ -47,7 +47,7 @@ val jsonTask = tasks.register<JavaExec>("generateJSON") {
     group = "verification"
     description = "(re-)generates randomized json files for the parameterized tests"
     workingDir = File(".") // if unset, files will be put into build dir
-    mainClass.set("h03.TestJsonGenerators")
+    mainClass.set("h03.RandomizedJsonGenerator")
 }
 
 // build fails if this is not done after evaluation
