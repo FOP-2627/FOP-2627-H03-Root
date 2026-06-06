@@ -372,10 +372,11 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                                 .minPoints(0)
                                 .addChildCriteria(
                                     criterion(
-                                        "nextPlayer wird mit korrektem Parameter aufgerufen.",
+                                        "Die Methode ist vollständig korrekt.",
                                         JUnitTestRef.ofMethod(
                                             () -> ConnectFourTest.Loop.class.getDeclaredMethod(
-                                                "gameBoardFull"
+                                                "gameBoardFull",
+                                                JsonParameterSet.class
                                             )
                                         )
                                     )

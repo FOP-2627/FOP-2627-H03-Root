@@ -657,9 +657,22 @@ public class ConnectFourTest {
             }
         }
 
-        @Test
-        public void gameBoardFull() {
-            fail(emptyContext(), r -> "TODO: write test");
+        @ParameterizedTest
+        @JsonParameterSetTest("generated/connect4/loop/boardFull.json")
+        public void gameBoardFull(JsonParameterSet params) {
+            setup(params);
+            assertFalse(ConnectFour.isGameBoardFull(stones), baseContextBuilder.build(), r -> "isGameBoardFull returned an incorrect value");
+            stones = new RobotFamily[World.getHeight()][World.getWidth()];
+            baseContextBuilder.add("cb", stones);
+            assertFalse(ConnectFour.isGameBoardFull(stones), baseContextBuilder.build(), r -> "isGameBoardFull returned an incorrect value");
+            List<List<String>> fullBoard = params.get("fullBoard");
+            for (int row = 0; row < worldHeight; row++) {
+                for (int col = 0; col < worldWidth; col++) {
+                    stones[row][col] = robotFamilyLookup(fullBoard.get(row).get(col));
+                }
+            }
+            baseContextBuilder.add("cb", stones);
+            assertTrue(ConnectFour.isGameBoardFull(stones), baseContextBuilder.build(), r -> "isGameBoardFull returned an incorrect value");
         }
 
         @Nested

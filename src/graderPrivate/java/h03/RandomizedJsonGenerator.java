@@ -22,6 +22,7 @@ public class RandomizedJsonGenerator {
         Trib.genPushNumbers();
         Connect4.genValidateCases();
         Connect4.genDropBoard();
+        Connect4.genCheckFullBoards();
         for (boolean v : new boolean[]{true, false}) {
             Trib.genCalcNextNumbers(v);
             Trib.genTribonacciNumbers(v);
@@ -243,6 +244,66 @@ public class RandomizedJsonGenerator {
                 },
                 TEST_ITERATIONS,
                 "connect4/checkWin/" + (horizontal ? "horizontal" : "vertical") + ".json"
+            );
+        }
+
+        public static void genCheckFullBoards() throws IOException {
+            TestUtils.generateJsonTestData((mapper, index, rnd) -> {
+                    int worldHeight = rnd.nextInt(1, 10);
+                    int worldWidth = rnd.nextInt(1, 10);
+                    ObjectNode objectNode = mapper.createObjectNode()
+                        .put("worldHeight", worldHeight)
+                        .put("worldWidth", worldWidth);
+                    RobotFamily[][] gameBoard = new RobotFamily[worldHeight][worldWidth];
+                    for (int i = 0; i < gameBoard.length; ++i) {
+                        for (int j = 0; j < gameBoard[i].length; ++j) {
+                            int rand = rnd.nextInt(10);
+                            gameBoard[i][j] = switch (rand) {
+                                case 0, 1, 2, 3 -> RobotFamily.SQUARE_RED;
+                                case 4, 5, 6, 7 -> RobotFamily.SQUARE_BLUE;
+                                default -> null; // 20% chance of null
+                            };
+                        }
+                    }
+                    // make sure board is not full
+                    int x = rnd.nextInt(worldWidth);
+                    int y = rnd.nextInt(worldHeight);
+                    gameBoard[y][x] = null;
+                    // serialize
+                    ArrayNode boardNode = mapper.createArrayNode();
+                    for (RobotFamily[] row : gameBoard) {
+                        ArrayNode rowNode = mapper.createArrayNode();
+                        for (RobotFamily r : row) {
+                            if (r == null) {
+                                rowNode.addNull();
+                            } else if (r == RobotFamily.SQUARE_RED) {
+                                rowNode.add("SQUARE_RED");
+                            } else {
+                                rowNode.add("SQUARE_BLUE");
+                            }
+                        }
+                        boardNode.add(rowNode);
+                    }
+                    objectNode.set("gameBoard", boardNode);
+                    ArrayNode fullNode = mapper.createArrayNode();
+                    for (RobotFamily[] row : gameBoard) {
+                        ArrayNode rowNode = mapper.createArrayNode();
+                        for (RobotFamily r : row) {
+                            if (r == null) {
+                                rowNode.add(rnd.nextBoolean() ? "SQUARE_RED" : "SQUARE_BLUE");
+                            } else if (r == RobotFamily.SQUARE_RED) {
+                                rowNode.add("SQUARE_RED");
+                            } else {
+                                rowNode.add("SQUARE_BLUE");
+                            }
+                        }
+                        fullNode.add(rowNode);
+                    }
+                    objectNode.set("fullBoard", fullNode);
+                    return objectNode;
+                },
+                TEST_ITERATIONS,
+                "connect4/loop/boardFull.json"
             );
         }
     }

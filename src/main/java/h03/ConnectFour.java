@@ -55,9 +55,9 @@ public class ConnectFour {
     /**
      * Creates a new {@link ConnectFour} instance with the given width and height.
      *
-     * @param width  the width of the game board
-     * @param height the height of the game board
-     * @param visible whether the world should be visible
+     * @param width      the width of the game board
+     * @param height     the height of the game board
+     * @param visible    whether the world should be visible
      * @param worldDelay delay of operations on the world
      */
     ConnectFour(int width, int height, boolean visible, int worldDelay) {
@@ -287,9 +287,11 @@ public class ConnectFour {
      */
     @StudentImplementationRequired("H3.2.4")
     public static boolean isGameBoardFull(RobotFamily[][] stones) {
-        for (int x = 0; x < World.getWidth(); x++) {
-            if (ConnectFour.validateInput(stones, x)) {
-                return false;
+        for (RobotFamily[] column : stones) {
+            for (RobotFamily robot : column) {
+                if (robot == null) {
+                    return false;
+                }
             }
         }
         return true;
