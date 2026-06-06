@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.junitpioneer.jupiter.cartesian.CartesianTest;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
@@ -30,6 +31,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import static h03.TestUtils.getCtMethod;
 import static h03.TestUtils.iterateMethodStatements;
@@ -212,7 +214,8 @@ public class ConnectFourTest {
         class DropStone {
             /**
              * resets the world, calls dropStone and sets up a context.
-             * @param col the column to drop the stone in
+             *
+             * @param col           the column to drop the stone in
              * @param currentPlayer the robot family to drop
              * @return a basic context
              */
@@ -234,6 +237,7 @@ public class ConnectFourTest {
 
             /**
              * asserts that there is only one robot in the world and returns it
+             *
              * @param context context for the assertion
              * @return the robot if the assertion succeeds
              */
@@ -345,32 +349,41 @@ public class ConnectFourTest {
 
     @Nested
     class CheckWin {
-        private void testWinVAnforderung(String methodName) {
-            List<CtLoop> loops = getCtMethod(ConnectFour.class, methodName, RobotFamily[][].class, RobotFamily.class)
-                .filterChildren(CtLoop.class::isInstance)
-                .list();
-
-            assertEquals(2, loops.size(), emptyContext(), result ->
-                "Method %s does not use exactly two loops".formatted(methodName));
-            assertTrue(loops.get(0).getBody().equals(loops.get(1).getParent()), emptyContext(), result ->
-                "Method %s does not use exactly two nested loops".formatted(methodName));
-        }
-
         @Nested
         class InLine {
-            @Test
-            public void check() {
-                fail(emptyContext(), r -> "TODO: write test");
+            // TODO: how complicated should this test be?
+            @CartesianTest
+            public void check(
+                @CartesianTest.Values(strings = {"SQUARE_RED", "SQUARE_BLUE"}) String c,
+                @CartesianTest.Values(strings = {"SQUARE_RED", "SQUARE_BLUE"}) String l,
+                @CartesianTest.Values(ints = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}) int length
+            ) {
+                RobotFamily currentPlayer = robotFamilyLookup(c);
+                RobotFamily lineFamily = robotFamilyLookup(l);
+                RobotFamily[] line = Stream.generate(() -> lineFamily).limit(length).toArray(RobotFamily[]::new);
+                boolean actual = ConnectFour.testAllInLine(line, currentPlayer);
+                Context context = contextBuilder()
+                    .add("currentPlayer", currentPlayer)
+                    .add("line", line)
+                    .build();
+                assertEquals(currentPlayer == lineFamily, actual, context, r -> "Returned value is incorrect.");
             }
 
             @Test
             public void requirements() {
-                fail(emptyContext(), r -> "TODO: write test");
+                iterateMethodStatements(
+                    REQUIRE_SINGLE_LOOP,
+                    ConnectFour.class,
+                    "testAllInLine",
+                    RobotFamily[].class,
+                    RobotFamily.class
+                );
             }
         }
 
         @Nested
         class Horizontal {
+            // TODO: how strict should these tests be?
             @ParameterizedTest
             @JsonParameterSetTest("generated/connect4/checkWin/horizontal.json")
             public void goodInput(JsonParameterSet params) {
@@ -378,16 +391,13 @@ public class ConnectFourTest {
                 List<Map<String, Integer>> winningRowCoordinates = params.get("winningRowCoordinates");
                 Context context = baseContextBuilder.build();
                 boolean expected = !winningRowCoordinates.isEmpty();
-                boolean actual = callObject(() -> ConnectFour.testWinHorizontal(stones, currentPlayer), context, result ->
-                    "An exception occurred while invoking method testWinHorizontal");
-                assertEquals(expected, actual, context, result ->
-                    "Method testWinHorizontal did not return the correct value");
+                boolean actual = callObject(() -> ConnectFour.testWinHorizontal(stones, currentPlayer), context, result -> "An exception occurred while invoking method testWinHorizontal");
+                assertEquals(expected, actual, context, result -> "Method testWinHorizontal did not return the correct value");
             }
 
-            // TODO: check requirements
             @Test
             public void inLineCall() {
-                testWinVAnforderung("testWinHorizontal");
+                fail(emptyContext(), r -> "TODO: write test");
             }
 
             @Test
@@ -414,6 +424,7 @@ public class ConnectFourTest {
 
         @Nested
         class Vertical {
+            // TODO: how strict should these tests be?
             @ParameterizedTest
             @JsonParameterSetTest("generated/connect4/checkWin/vertical.json")
             public void goodInput(JsonParameterSet params) {
@@ -426,12 +437,6 @@ public class ConnectFourTest {
                     "An exception occurred while invoking method testWinVertical");
                 assertEquals(expected, actual, context, result ->
                     "Method testWinVertical did not return the correct value");
-            }
-
-            // TODO: what's up with this test
-            @Test
-            public void testTestWinVerticalVAnforderung1() {
-                testWinVAnforderung("testWinVertical");
             }
 
             @Test

@@ -238,7 +238,10 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                                         "Methode gibt korrekt true oder false abhängig vom Parameter zurück.",
                                         JUnitTestRef.ofMethod(
                                             () -> ConnectFourTest.CheckWin.InLine.class.getDeclaredMethod(
-                                                "check"
+                                                "check",
+                                                String.class,
+                                                String.class,
+                                                int.class
                                             )
                                         )
                                     ),
