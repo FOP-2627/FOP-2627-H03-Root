@@ -584,7 +584,7 @@ public class ConnectFourTest {
 
             int worldHeight = 5;
             int worldWidth = 5;
-            ConnectFour ConnectFourInstance = new ConnectFour(worldWidth, worldHeight);
+            ConnectFour ConnectFourInstance = new ConnectFour(worldWidth, worldHeight, false, 0);
             Context.Builder<?> contextBuilder = contextBuilder()
                 .add("world height", worldHeight)
                 .add("world width", worldWidth);
@@ -649,7 +649,7 @@ public class ConnectFourTest {
                 try (MockedStatic<ConnectFour> mockedStatic = Mockito.mockStatic(ConnectFour.class, answer)) {
                     int worldHeight = 5;
                     int worldWidth = 5;
-                    ConnectFour ConnectFour = new ConnectFour(worldWidth, worldHeight);
+                    ConnectFour ConnectFour = new ConnectFour(worldWidth, worldHeight, false, 0);
                     ConnectFourInputHandler inputHandler = ConnectFour.getInputHandler();
                     for (int i = 0; i < 10; i++) {
                         inputHandler.addInput(0);
@@ -698,7 +698,7 @@ public class ConnectFourTest {
                 int worldHeight = 5;
                 int worldWidth = 5;
                 try (MockedStatic<ConnectFour> mockedStatic = Mockito.mockStatic(ConnectFour.class, answer)) {
-                    ConnectFour ConnectFour = new ConnectFour(worldWidth, worldHeight);
+                    ConnectFour ConnectFour = new ConnectFour(worldWidth, worldHeight, false, 0);
                     ConnectFourInputHandler inputHandler = ConnectFour.getInputHandler();
                     for (int i = 0; i < 10; i++) {
                         inputHandler.addInput(i % worldWidth);
@@ -754,7 +754,7 @@ public class ConnectFourTest {
                 int worldHeight = 5;
                 int worldWidth = 5;
                 try (MockedStatic<ConnectFour> mockedStatic = Mockito.mockStatic(ConnectFour.class, answer)) {
-                    ConnectFour ConnectFour = new ConnectFour(worldWidth, worldHeight);
+                    ConnectFour ConnectFour = new ConnectFour(worldWidth, worldHeight, false, 0);
                     ConnectFourInputHandler inputHandler = ConnectFour.getInputHandler();
                     for (int i = 0; i < 10; i++) {
                         inputHandler.addInput(i % worldWidth);

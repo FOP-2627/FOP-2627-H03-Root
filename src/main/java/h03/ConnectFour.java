@@ -25,6 +25,17 @@ public class ConnectFour {
      * Indicates whether the game is currently running.
      */
     private boolean isRunning = false;
+
+    /**
+     * Whether the game should be visible.
+     */
+    private final boolean visible;
+
+    /**
+     * Delay of the world. Increase/Decrease this value to slow down/speed up the game.
+     */
+    private final int worldDelay;
+
     /**
      * The input handler for this exercise. It checks and waits for the next click in the game window.
      * (You do not need to understand its it inner workings)
@@ -38,8 +49,22 @@ public class ConnectFour {
      * @param height the height of the game board
      */
     ConnectFour(int width, int height) {
+        this(width, height, true, 10);
+    }
+
+    /**
+     * Creates a new {@link ConnectFour} instance with the given width and height.
+     *
+     * @param width  the width of the game board
+     * @param height the height of the game board
+     * @param visible whether the world should be visible
+     * @param worldDelay delay of operations on the world
+     */
+    ConnectFour(int width, int height, boolean visible, int worldDelay) {
         this.width = width;
         this.height = height;
+        this.visible = visible;
+        this.worldDelay = worldDelay;
     }
 
     /**
@@ -346,8 +371,8 @@ public class ConnectFour {
     @DoNotTouch
     void setupWorld() {
         World.setSize(width, height);
-        World.setDelay(10);
-        World.setVisible(true);
+        World.setDelay(worldDelay);
+        World.setVisible(visible);
         inputHandler.install();
         isRunning = true;
     }
