@@ -160,19 +160,19 @@ public class RandomizedJsonGenerator {
                     int worldWidth = rnd.nextInt(5, 10);
                     // SQUARE_RED <-> true, SQUARE_BLUE <-> false, null <-> null
                     RobotFamily[][] gameBoard = new RobotFamily[worldHeight][worldWidth];
-                    List<Integer> firstFreeIndex = new ArrayList<>(worldWidth);  // values may exceed array index range
+                    List<Integer> numSteps = new ArrayList<>(worldWidth);
                     for (int col = 0; col < worldWidth; col++) {
                         int rowsToFill = rnd.nextInt(worldHeight);
                         for (int row = 0; row <= rowsToFill; row++) {
-                            gameBoard[row][col] = RobotFamily.SQUARE_RED;
+                            gameBoard[row][col] = rnd.nextBoolean() ? RobotFamily.SQUARE_RED : RobotFamily.SQUARE_BLUE;
                         }
-                        firstFreeIndex.add(rowsToFill + 1);
+                        numSteps.add(worldHeight - rowsToFill - 2);
                     }
 
-                    ArrayNode firstFreeIndexNode = mapper.createArrayNode();
-                    firstFreeIndex.stream()
+                    ArrayNode stepsNode = mapper.createArrayNode();
+                    numSteps.stream()
                         .map(mapper.getNodeFactory()::numberNode)
-                        .forEach(firstFreeIndexNode::add);
+                        .forEach(stepsNode::add);
 
                     ArrayNode gameBoardNode = mapper.createArrayNode();
                     Arrays.stream(gameBoard)
@@ -184,9 +184,8 @@ public class RandomizedJsonGenerator {
                     ObjectNode objectNode = mapper.createObjectNode()
                         .put("worldHeight", worldHeight)
                         .put("worldWidth", worldWidth);
-                    objectNode.set("firstFreeIndex", firstFreeIndexNode);
+                    objectNode.set("numSteps", stepsNode);
                     objectNode.set("gameBoard", gameBoardNode);
-
                     return objectNode;
                 },
                 TEST_ITERATIONS,

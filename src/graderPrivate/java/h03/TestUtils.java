@@ -6,12 +6,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.tudalgo.algoutils.tutor.general.SpoonUtils;
 import spoon.reflect.declaration.CtElement;
 import spoon.reflect.declaration.CtMethod;
-import spoon.reflect.declaration.CtParameter;
+import spoon.reflect.reference.CtTypeReference;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Random;
 import java.util.function.Consumer;
 
@@ -63,8 +63,8 @@ public abstract class TestUtils {
         ).toAbsolutePath();
         System.out.printf("Saving to file: %s%n", path);
         final var file = path.toFile();
-        file.getParentFile().mkdirs();
-        file.createNewFile();
+        boolean ignored = file.getParentFile().mkdirs();
+        boolean ignored2 = file.createNewFile();
         mapper.writerWithDefaultPrettyPrinter().writeValue(file, arrayNode);
     }
 
@@ -77,19 +77,11 @@ public abstract class TestUtils {
      * @return the Spoon representation of the given method
      */
     public static CtMethod<?> getCtMethod(Class<?> clazz, String methodName, Class<?>... paramTypes) {
-        return SpoonUtils.getType(clazz.getName())
-            .getMethodsByName(methodName)
-            .stream()
-            .filter(ctMethod -> {
-                List<CtParameter<?>> parameters = ctMethod.getParameters();
-                boolean result = parameters.size() == paramTypes.length;
-                for (int i = 0; result && i < parameters.size(); i++) {
-                    result = parameters.get(i).getType().getQualifiedName().equals(paramTypes[i].getTypeName());
-                }
-                return result;
-            })
-            .findAny()
-            .orElseThrow();
+        var type = SpoonUtils.getType(clazz.getName());
+        var params = Arrays.stream(paramTypes)
+            .map(x -> type.getFactory().Type().get(x).getReference())
+            .toArray(CtTypeReference<?>[]::new);
+        return type.getMethod(methodName, params);
     }
 
     /**
@@ -101,7 +93,7 @@ public abstract class TestUtils {
      * @param paramTypes the method's formal parameter types, if any
      * @param consumer   the consumer to apply
      */
-    public static void iterateMethodStatements(Class<?> clazz, String methodName, Class<?>[] paramTypes, Consumer<Iterator<CtElement>> consumer) {
+    public static void iterateMethodStatements(Consumer<Iterator<CtElement>> consumer, Class<?> clazz, String methodName, Class<?>... paramTypes) {
         Iterator<CtElement> iterator = getCtMethod(clazz, methodName, paramTypes)
             .getBody()
             .descendantIterator();
