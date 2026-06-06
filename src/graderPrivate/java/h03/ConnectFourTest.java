@@ -10,6 +10,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.junitpioneer.jupiter.cartesian.CartesianTest;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.mockito.exceptions.base.MockitoException;
 import org.mockito.stubbing.Answer;
 import org.sourcegrade.jagr.api.rubric.TestForSubmission;
 import org.tudalgo.algoutils.tutor.general.annotation.SkipAfterFirstFailedTest;
@@ -395,9 +396,33 @@ public class ConnectFourTest {
                 assertEquals(expected, actual, context, result -> "Method testWinHorizontal did not return the correct value");
             }
 
-            @Test
-            public void inLineCall() {
-                fail(emptyContext(), r -> "TODO: write test");
+            @ParameterizedTest
+            @JsonParameterSetTest("generated/connect4/checkWin/horizontal.json")
+            public void inLineCall(JsonParameterSet params) throws Throwable {
+                setup(params);
+                List<Map<String, Integer>> winningRowCoordinates = params.get("winningRowCoordinates");
+                var cb = baseContextBuilder.add("Method", "testWinHorizontal");
+                Answer<?> answer = invocation -> {
+                    Method method = invocation.getMethod();
+                    if (method.getName().equals("testAllInLine")) {
+                        RobotFamily[] line = invocation.getArgument(0);
+                        RobotFamily actualPlayer = invocation.getArgument(1);
+                        cb.add("line", line);
+                        assertEquals(4, line.length, cb.build(), r -> "Encountered line of unexpected length.");
+                        cb.add("current player", currentPlayer).add("actual player", actualPlayer);
+                        assertEquals(currentPlayer, actualPlayer, cb.build(), r -> "Method called with wrong player argument");
+                    }
+                    return invocation.callRealMethod();
+                };
+                try (MockedStatic<ConnectFour> mock = Mockito.mockStatic(ConnectFour.class, answer)) {
+                    callObject(() -> ConnectFour.testWinHorizontal(stones, currentPlayer), cb.build(), result -> "An exception occurred while invoking method testWinHorizontal");
+                    RobotFamily[] arr = Stream.generate(() -> winningRowCoordinates.isEmpty() ? null : currentPlayer).limit(4).toArray(RobotFamily[]::new);
+                    mock.verify(() -> ConnectFour.testAllInLine(arr, currentPlayer), Mockito.atLeastOnce());
+                } catch (MockitoException e) {
+                    // dubious workaround for https://github.com/mockito/mockito/issues/2576
+                    if (e.getMessage().contains("An unexpected error occurred while verifying a static stub")) throw e.getCause();
+                    throw e;
+                }
             }
 
             @Test

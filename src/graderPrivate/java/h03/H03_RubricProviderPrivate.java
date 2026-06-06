@@ -273,7 +273,8 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                                         "Methode ruft testAllInLine korrekt auf.",
                                         JUnitTestRef.ofMethod(
                                             () -> ConnectFourTest.CheckWin.Horizontal.class.getDeclaredMethod(
-                                                "inLineCall"
+                                                "inLineCall",
+                                                JsonParameterSet.class
                                             )
                                         ),
                                         2
