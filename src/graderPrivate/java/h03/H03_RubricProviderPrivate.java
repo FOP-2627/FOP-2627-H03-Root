@@ -424,6 +424,15 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                                                 "output"
                                             )
                                         )
+                                    ),
+                                    criterion(
+                                        "Alle verbindlichen Anforderungen werden eingehalten.",
+                                        JUnitTestRef.ofMethod(
+                                            () -> ConnectFourTest.Loop.GameLoop.class.getDeclaredMethod(
+                                                "requirements"
+                                            )
+                                        ),
+                                        -1
                                     )
                                 ).build()
                         ).build()

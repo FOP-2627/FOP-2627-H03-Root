@@ -20,18 +20,21 @@ import org.tudalgo.algoutils.tutor.general.assertions.PreCommentSupplier;
 import org.tudalgo.algoutils.tutor.general.assertions.ResultOfObject;
 import org.tudalgo.algoutils.tutor.general.json.JsonParameterSet;
 import org.tudalgo.algoutils.tutor.general.json.JsonParameterSetTest;
-import spoon.reflect.code.CtInvocation;
-import spoon.reflect.code.CtLoop;
+import org.tudalgo.algoutils.tutor.general.reflections.BasicMethodLink;
+import spoon.reflect.code.*;
 import spoon.reflect.declaration.CtElement;
 import spoon.reflect.declaration.CtMethod;
+import spoon.reflect.declaration.CtVariable;
 import spoon.reflect.reference.CtExecutableReference;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static h03.TestUtils.getCtMethod;
@@ -420,7 +423,8 @@ public class ConnectFourTest {
                     mock.verify(() -> ConnectFour.testAllInLine(arr, currentPlayer), Mockito.atLeastOnce());
                 } catch (MockitoException e) {
                     // dubious workaround for https://github.com/mockito/mockito/issues/2576
-                    if (e.getMessage().contains("An unexpected error occurred while verifying a static stub")) throw e.getCause();
+                    if (e.getMessage().contains("An unexpected error occurred while verifying a static stub"))
+                        throw e.getCause();
                     throw e;
                 }
             }
@@ -677,9 +681,86 @@ public class ConnectFourTest {
 
         @Nested
         class GameLoop {
+            private void mockInputHandler(ConnectFour connectFour) {
+                ConnectFourInputHandler inputHandler = Mockito.mock(ConnectFourInputHandler.class);
+                try {
+                    // field is 'private final', so we bend the rules
+                    Field f = ConnectFour.class.getDeclaredField("inputHandler");
+                    // shouldn't fail in practice
+                    f.setAccessible(true);
+                    f.set(connectFour, inputHandler);
+                } catch (ReflectiveOperationException e) {
+                    // rethrow, but unchecked <3
+                    throw new RuntimeException(e);
+                }
+                Mockito.doAnswer(invocation -> {
+                    if (invocation.getMethod().getName().equals("install")) {
+                        // do nothing, we don't need it for headless tests
+                        return null;
+                    }
+                    return invocation.callRealMethod();
+                }).when(inputHandler).install();
+            }
+
             @Test
-            public void initialization() {
-                fail(emptyContext(), r -> "TODO: write test");
+            public void initialization() throws NoSuchMethodException {
+                var cb = contextBuilder();
+                // afaik there is no way to do a proper data flow analysis in spoon
+                // so we just collect all variable declarations and assignments and make sure the appropriate values occur
+                final var mth = BasicMethodLink.of(ConnectFour.class.getDeclaredMethod("gameLoop")).getCtElement();
+                final var allStmts = mth.getBody().getStatements();
+                // all statements until loop (if students have no loop, they'll probably fail to score multiple other points so we're generous
+                var stmtsUntilLoop = allStmts.stream().takeWhile(new Predicate<>() {
+                    boolean foundLoop = false;
+
+                    @Override
+                    public boolean test(CtStatement ctStatement) {
+                        if (ctStatement instanceof CtLoop) foundLoop = true;
+                        return !foundLoop;
+                    }
+                }).toList();
+                // find all rvalues
+                var assignedVals = stmtsUntilLoop
+                    .stream()
+                    .map(stmt -> {
+                        if (stmt instanceof CtLocalVariable<?> v) return v.getAssignment();
+                        else if (stmt instanceof CtAssignment<?, ?> a) return a.getAssignment();
+                        return null;
+                    })
+                    .filter(Objects::nonNull) // store brand filterMap
+                    .toList();
+                cb.add("Values assigned before first loop", assignedVals);
+                // find current player initial value
+                assertTrue(assignedVals.stream().anyMatch(x -> x.toString().contains(RobotFamily.SQUARE_BLUE.toString())), cb.build(), r -> "Value " + RobotFamily.SQUARE_BLUE + " was never assigned to a variable.");
+
+                @SuppressWarnings({"unchecked"}) // see below for reasoning
+                List<CtNewArray<RobotFamily[][]>> newArrayExpressions = assignedVals.stream()
+                    .filter(x ->
+                        x instanceof CtNewArray<?> && x.getType().getActualClass() == RobotFamily[][].class
+                    ) // the following cast is unchecked. spoons api is just weird and i'm not sure whether there is a way to get around an unchecked operation here. the filter above should in theory check this cast to be safe
+                    .map(x -> (CtNewArray<RobotFamily[][]>) x)
+                    .toList();
+                assertEquals(newArrayExpressions.size(), 1, cb.build(), r -> "Found incorrect number of assigned RobotFamily[][] values.");
+
+                // assert World.getHeight and World.getWidth were called
+                // we assume that if they were called and an array expression exists, the construction was fine
+                List<CtExpression<Integer>> dims = newArrayExpressions.getFirst().getDimensionExpressions();
+                final var invocations = Stream.of(assignedVals, dims)
+                    .flatMap(List::stream)
+                    .filter(CtInvocation.class::isInstance)
+                    .map(CtInvocation.class::cast)
+                    .toList();
+                cb.add("invocations", invocations);
+                for (String mthName : new String[]{"getHeight", "getWidth"}) {
+                    assertTrue(invocations.stream().anyMatch(invocation -> {
+                        try {
+                            return invocation.getExecutable().getActualMethod().equals(World.class.getMethod(mthName));
+                        } catch (NoSuchMethodException e) {
+                            // can't have checked exception in lambda
+                            throw new RuntimeException(e);
+                        }
+                    }), cb.build(), r -> "World." + mthName + " was not called.");
+                }
             }
 
             @Test
@@ -702,13 +783,14 @@ public class ConnectFourTest {
                 try (MockedStatic<ConnectFour> ignored = Mockito.mockStatic(ConnectFour.class, answer)) {
                     int worldHeight = 5;
                     int worldWidth = 5;
-                    ConnectFour ConnectFour = new ConnectFour(worldWidth, worldHeight, false, 0);
-                    ConnectFourInputHandler inputHandler = ConnectFour.getInputHandler();
+                    ConnectFour connectFour = new ConnectFour(worldWidth, worldHeight, false, 0);
+                    mockInputHandler(connectFour);
+                    ConnectFourInputHandler inputHandler = connectFour.getInputHandler();
                     for (int i = 0; i < 10; i++) {
                         inputHandler.addInput(0);
                     }
 
-                    ConnectFour.startGame();
+                    connectFour.startGame();
                     for (int i = 0; i < nextPlayerArgs.size(); i++) {
                         Context context = contextBuilder()
                             .add("world height", worldHeight)
@@ -751,13 +833,14 @@ public class ConnectFourTest {
                 int worldHeight = 5;
                 int worldWidth = 5;
                 try (MockedStatic<ConnectFour> ignored = Mockito.mockStatic(ConnectFour.class, answer)) {
-                    ConnectFour ConnectFour = new ConnectFour(worldWidth, worldHeight, false, 0);
-                    ConnectFourInputHandler inputHandler = ConnectFour.getInputHandler();
+                    ConnectFour connectFour = new ConnectFour(worldWidth, worldHeight, false, 0);
+                    mockInputHandler(connectFour);
+                    ConnectFourInputHandler inputHandler = connectFour.getInputHandler();
                     for (int i = 0; i < 10; i++) {
                         inputHandler.addInput(i % worldWidth);
                     }
 
-                    ConnectFour.startGame();
+                    connectFour.startGame();
                 }
 
                 RobotFamily[][] stones = null;
@@ -807,13 +890,14 @@ public class ConnectFourTest {
                 int worldHeight = 5;
                 int worldWidth = 5;
                 try (MockedStatic<ConnectFour> mockedStatic = Mockito.mockStatic(ConnectFour.class, answer)) {
-                    ConnectFour ConnectFour = new ConnectFour(worldWidth, worldHeight, false, 0);
-                    ConnectFourInputHandler inputHandler = ConnectFour.getInputHandler();
+                    ConnectFour connectFour = new ConnectFour(worldWidth, worldHeight, false, 0);
+                    mockInputHandler(connectFour);
+                    ConnectFourInputHandler inputHandler = connectFour.getInputHandler();
                     for (int i = 0; i < 10; i++) {
                         inputHandler.addInput(i % worldWidth);
                     }
 
-                    ConnectFour.startGame();
+                    connectFour.startGame();
                 }
 
                 RobotFamily[][] stones = null;
@@ -842,6 +926,15 @@ public class ConnectFourTest {
             @Test
             public void output() {
                 fail(emptyContext(), r -> "TODO: write test");
+            }
+
+            @Test
+            public void requirements() {
+                iterateMethodStatements(
+                    REQUIRE_SINGLE_LOOP,
+                    ConnectFour.class,
+                    "gameLoop"
+                );
             }
         }
     }
