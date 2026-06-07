@@ -287,11 +287,9 @@ public class ConnectFour {
      */
     @StudentImplementationRequired("H3.2.4")
     public static boolean isGameBoardFull(RobotFamily[][] stones) {
-        for (RobotFamily[] column : stones) {
-            for (RobotFamily robot : column) {
-                if (robot == null) {
-                    return false;
-                }
+        for (int x = 0; x < World.getWidth(); x++) {
+            if (ConnectFour.validateInput(stones, x)) {
+                return false;
             }
         }
         return true;
