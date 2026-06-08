@@ -1,14 +1,17 @@
 package h03;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fopbot.RobotFamily;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Stream;
 
 import static h03.TestConstants.TEST_ITERATIONS;
@@ -30,9 +33,61 @@ public class RandomizedJsonGenerator {
         }
     }
 
+    /**
+     * A generator for JSON test data.
+     */
+    @FunctionalInterface
+    public interface JsonGenerator {
+        /**
+         * Generates a JSON object node.
+         *
+         * @param mapper The object mapper to use.
+         * @param index  The index of the object node.
+         * @param rnd    The random number generator to use.
+         * @return The generated JSON object node.
+         */
+        ObjectNode generateJson(ObjectMapper mapper, int index, Random rnd);
+
+        /**
+         * Generates and saves JSON test data.
+         *
+         * @param generator The generator to use.
+         * @param amount    The amount of test data to generate.
+         * @param fileName  The file name to save the test data to.
+         * @throws IOException If an I/O error occurs.
+         */
+        static void generateJsonTestData(final JsonGenerator generator, final int amount, final String fileName) throws IOException {
+            final var seed = TestConstants.RANDOM_SEED;
+            final var random = new java.util.Random(seed);
+            final ObjectMapper mapper = new ObjectMapper();
+            final ArrayNode arrayNode = mapper.createArrayNode();
+            System.out.println("Generating test data with seed: " + seed);
+            for (int i = 0; i < amount; i++) {
+                arrayNode.add(generator.generateJson(mapper, i, random));
+            }
+
+            // convert `ObjectNode` to pretty-print JSON
+            // System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(arrayNode));
+
+            final var path = Paths.get(
+                "src",
+                "graderPrivate",
+                "resources",
+                "h03",
+                "generated",
+                fileName
+            ).toAbsolutePath();
+            System.out.printf("Saving to file: %s%n", path);
+            final var file = path.toFile();
+            boolean ignored = file.getParentFile().mkdirs();
+            boolean ignored2 = file.createNewFile();
+            mapper.writerWithDefaultPrettyPrinter().writeValue(file, arrayNode);
+        }
+    }
+
     static class Trib {
         public static void genPushNumbers() throws IOException {
-            TestUtils.generateJsonTestData(
+            JsonGenerator.generateJsonTestData(
                 (mapper, index, rnd) -> {
                     final ObjectNode objectNode = mapper.createObjectNode();
                     objectNode.put("value", rnd.nextInt((int) -2e5, (int) 2e5));
@@ -57,7 +112,7 @@ public class RandomizedJsonGenerator {
         }
 
         public static void genCalcNextNumbers(final boolean threePositivesOnly) throws IOException {
-            TestUtils.generateJsonTestData(
+            JsonGenerator.generateJsonTestData(
                 (mapper, index, rnd) -> {
                     final ObjectNode objectNode = mapper.createObjectNode();
                     final List<Integer> input = new ArrayList<>();
@@ -83,7 +138,7 @@ public class RandomizedJsonGenerator {
         }
 
         public static void genTribonacciNumbers(final boolean smallerThanThree) throws IOException {
-            TestUtils.generateJsonTestData(
+            JsonGenerator.generateJsonTestData(
                 (mapper, index, rnd) -> {
                     final int startIdx = smallerThanThree ? index : index + 3;
                     final var trib = Stream.iterate(new int[]{0, 1, 1}, a -> new int[]{a[1], a[2], a[0] + a[1] + a[2]}).limit(startIdx + 1).mapToInt(a -> a[0]).toArray();
@@ -102,7 +157,7 @@ public class RandomizedJsonGenerator {
 
     static class Connect4 {
         public static void genValidateCases() throws IOException {
-            TestUtils.generateJsonTestData(
+            JsonGenerator.generateJsonTestData(
                 (mapper, index, rnd) -> {
                     final ObjectNode objectNode = mapper.createObjectNode();
 
@@ -155,7 +210,7 @@ public class RandomizedJsonGenerator {
         }
 
         public static void genDropBoard() throws IOException {
-            TestUtils.generateJsonTestData(
+            JsonGenerator.generateJsonTestData(
                 (mapper, index, rnd) -> {
                     int worldHeight = rnd.nextInt(5, 10);
                     int worldWidth = rnd.nextInt(5, 10);
@@ -195,7 +250,7 @@ public class RandomizedJsonGenerator {
         }
 
         public static void genCheckWinBoard(boolean horizontal) throws IOException {
-            TestUtils.generateJsonTestData(
+            JsonGenerator.generateJsonTestData(
                 (mapper, index, rnd) -> {
                     int worldHeight = rnd.nextInt(5, 10);
                     int worldWidth = rnd.nextInt(5, 10);
@@ -248,7 +303,7 @@ public class RandomizedJsonGenerator {
         }
 
         public static void genCheckFullBoards() throws IOException {
-            TestUtils.generateJsonTestData((mapper, index, rnd) -> {
+            JsonGenerator.generateJsonTestData((mapper, index, rnd) -> {
                 int worldHeight = rnd.nextInt(1, 10);
                 int worldWidth = rnd.nextInt(1, 10);
                 ObjectNode objectNode = mapper.createObjectNode().put("worldHeight", worldHeight).put("worldWidth", worldWidth);

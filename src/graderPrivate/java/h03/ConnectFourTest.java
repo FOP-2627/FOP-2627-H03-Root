@@ -13,6 +13,7 @@ import org.mockito.Mockito;
 import org.mockito.exceptions.base.MockitoException;
 import org.mockito.stubbing.Answer;
 import org.sourcegrade.jagr.api.rubric.TestForSubmission;
+import org.tudalgo.algoutils.tutor.general.SpoonUtils;
 import org.tudalgo.algoutils.tutor.general.annotation.SkipAfterFirstFailedTest;
 import org.tudalgo.algoutils.tutor.general.assertions.Assertions2;
 import org.tudalgo.algoutils.tutor.general.assertions.Context;
@@ -25,6 +26,7 @@ import spoon.reflect.code.*;
 import spoon.reflect.declaration.CtElement;
 import spoon.reflect.declaration.CtMethod;
 import spoon.reflect.reference.CtExecutableReference;
+import spoon.reflect.reference.CtTypeReference;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -37,8 +39,6 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import static h03.TestUtils.getCtMethod;
-import static h03.TestUtils.iterateMethodStatements;
 import static org.tudalgo.algoutils.tutor.general.assertions.Assertions2.*;
 
 @TestForSubmission
@@ -47,8 +47,39 @@ import static org.tudalgo.algoutils.tutor.general.assertions.Assertions2.*;
     unit = TimeUnit.SECONDS,
     threadMode = Timeout.ThreadMode.SEPARATE_THREAD
 )
-@SkipAfterFirstFailedTest(TestConstants.SKIP_AFTER_FIRST_FAILED_TEST)
+@SkipAfterFirstFailedTest
 public class ConnectFourTest {
+    /**
+     * Returns the Spoon representation of the given method.
+     *
+     * @param clazz      the method's owner
+     * @param methodName the method name
+     * @param paramTypes the method's formal parameter types, if any
+     * @return the Spoon representation of the given method
+     */
+    public static CtMethod<?> getCtMethod(Class<?> clazz, String methodName, Class<?>... paramTypes) {
+        var type = SpoonUtils.getType(clazz.getName());
+        var params = Arrays.stream(paramTypes)
+            .map(x -> type.getFactory().Type().get(x).getReference())
+            .toArray(CtTypeReference<?>[]::new);
+        return type.getMethod(methodName, params);
+    }
+
+    /**
+     * Applies the given consumer to the body and its descendants of the given method.
+     * See also: {@link #getCtMethod(Class, String, Class[])}.
+     *
+     * @param clazz      the method's owner
+     * @param methodName the method name
+     * @param paramTypes the method's formal parameter types, if any
+     * @param consumer   the consumer to apply
+     */
+    public static void iterateMethodStatements(Consumer<Iterator<CtElement>> consumer, Class<?> clazz, String methodName, Class<?>... paramTypes) {
+        Iterator<CtElement> iterator = getCtMethod(clazz, methodName, paramTypes)
+            .getBody()
+            .descendantIterator();
+        consumer.accept(iterator);
+    }
 
     private static final Consumer<Iterator<CtElement>> REQUIRE_SINGLE_LOOP = iterator -> {
         int loopStatements = 0;
@@ -504,20 +535,16 @@ public class ConnectFourTest {
              * </ul>
              *
              * @param flags the flags (2:0, 31:3 are unused)
-             * @throws ReflectiveOperationException if methods testWinHorizontal, testWinVertical or testWinDiagonal are not found
              */
             @ParameterizedTest
             @ValueSource(ints = {0, 1, 2, 3, 4, 5, 6, 7})
-            public void check(int flags) throws ReflectiveOperationException {
-                Method testWinHorizontalMethod = ConnectFour.class.getDeclaredMethod("testWinHorizontal", RobotFamily[][].class, RobotFamily.class);
-                Method testWinVerticalMethod = ConnectFour.class.getDeclaredMethod("testWinVertical", RobotFamily[][].class, RobotFamily.class);
-                Method testWinDiagonalMethod = ConnectFour.class.getDeclaredMethod("testWinDiagonal", RobotFamily[][].class, RobotFamily.class);
+            public void check(int flags) {
                 Answer<?> answer = invocation -> {
-                    if (invocation.getMethod().equals(testWinHorizontalMethod)) {
+                    if (invocation.getMethod().equals(ConnectFour.class.getDeclaredMethod("testWinHorizontal", RobotFamily[][].class, RobotFamily.class))) {
                         return (flags & 1) == 1;
-                    } else if (invocation.getMethod().equals(testWinVerticalMethod)) {
+                    } else if (invocation.getMethod().equals(ConnectFour.class.getDeclaredMethod("testWinVertical", RobotFamily[][].class, RobotFamily.class))) {
                         return (flags >> 1 & 1) == 1;
-                    } else if (invocation.getMethod().equals(testWinDiagonalMethod)) {
+                    } else if (invocation.getMethod().equals(ConnectFour.class.getDeclaredMethod("testWinDiagonal", RobotFamily[][].class, RobotFamily.class))) {
                         return (flags >> 2 & 1) == 1;
                     } else {
                         return invocation.callRealMethod();
@@ -737,7 +764,7 @@ public class ConnectFourTest {
                 List<CtNewArray<RobotFamily[][]>> newArrayExpressions = assignedVals.stream()
                     .filter(x ->
                         x instanceof CtNewArray<?> && x.getType().getActualClass() == RobotFamily[][].class
-                    ) // the following cast is unchecked. spoons api is just weird and i'm not sure whether there is a way to get around an unchecked operation here. the filter above should in theory check this cast to be safe
+                    ) // the following cast is unchecked. spoon's api is just weird and i'm not sure whether there is a way to get around an unchecked operation here. the filter above should in theory check this cast to be safe
                     .map(x -> (CtNewArray<RobotFamily[][]>) x)
                     .toList();
                 assertEquals(newArrayExpressions.size(), 1, cb.build(), r -> "Found incorrect number of assigned RobotFamily[][] values.");
@@ -767,17 +794,21 @@ public class ConnectFourTest {
             public void nextPlayerCall() {
                 List<RobotFamily> nextPlayerArgs = new ArrayList<>();
                 Answer<?> answer = invocation -> {
-                    Method method = invocation.getMethod();
-                    if (method.getName().equals("nextPlayer")) {
-                        RobotFamily currentPlayer = invocation.getArgument(0);
-                        nextPlayerArgs.add(currentPlayer);
-                        return currentPlayer == RobotFamily.SQUARE_RED ? RobotFamily.SQUARE_BLUE : RobotFamily.SQUARE_RED;
-                    } else if (method.getName().equals("dropStone")) {
-                        return null;
-                    } else if (method.getName().equals("testWinConditions")) {
-                        return nextPlayerArgs.size() >= 5;
-                    } else {
-                        return invocation.callRealMethod();
+                    switch (invocation.getMethod().getName()) {
+                        case "nextPlayer" -> {
+                            RobotFamily currentPlayer = invocation.getArgument(0);
+                            nextPlayerArgs.add(currentPlayer);
+                            return currentPlayer == RobotFamily.SQUARE_RED ? RobotFamily.SQUARE_BLUE : RobotFamily.SQUARE_RED;
+                        }
+                        case "dropStone" -> {
+                            return null;
+                        }
+                        case "testWinConditions" -> {
+                            return nextPlayerArgs.size() >= 5;
+                        }
+                        default -> {
+                            return invocation.callRealMethod();
+                        }
                     }
                 };
                 try (MockedStatic<ConnectFour> ignored = Mockito.mockStatic(ConnectFour.class, answer)) {
@@ -815,19 +846,23 @@ public class ConnectFourTest {
                 List<RobotFamily[][]> stonesArgs = new ArrayList<>();
                 List<RobotFamily> currentPlayerArgs = new ArrayList<>();
                 Answer<?> answer = invocation -> {
-                    Method method = invocation.getMethod();
-                    if (method.getName().equals("nextPlayer")) {
-                        RobotFamily currentPlayer = invocation.getArgument(0);
-                        return currentPlayer == RobotFamily.SQUARE_RED ? RobotFamily.SQUARE_BLUE : RobotFamily.SQUARE_RED;
-                    } else if (method.getName().equals("dropStone")) {
-                        stonesArgs.add(invocation.getArgument(0));
-                        columnArgs.add(invocation.getArgument(1));
-                        currentPlayerArgs.add(invocation.getArgument(2));
-                        return null;
-                    } else if (method.getName().equals("testWinConditions")) {
-                        return currentPlayerArgs.size() >= 5;
-                    } else {
-                        return invocation.callRealMethod();
+                    switch (invocation.getMethod().getName()) {
+                        case "nextPlayer" -> {
+                            RobotFamily currentPlayer = invocation.getArgument(0);
+                            return currentPlayer == RobotFamily.SQUARE_RED ? RobotFamily.SQUARE_BLUE : RobotFamily.SQUARE_RED;
+                        }
+                        case "dropStone" -> {
+                            stonesArgs.add(invocation.getArgument(0));
+                            columnArgs.add(invocation.getArgument(1));
+                            currentPlayerArgs.add(invocation.getArgument(2));
+                            return null;
+                        }
+                        case "testWinConditions" -> {
+                            return currentPlayerArgs.size() >= 5;
+                        }
+                        default -> {
+                            return invocation.callRealMethod();
+                        }
                     }
                 };
                 int worldHeight = 5;
@@ -873,18 +908,22 @@ public class ConnectFourTest {
                 List<RobotFamily[][]> stonesArgs = new ArrayList<>();
                 List<RobotFamily> currentPlayerArgs = new ArrayList<>();
                 Answer<?> answer = invocation -> {
-                    Method method = invocation.getMethod();
-                    if (method.getName().equals("nextPlayer")) {
-                        RobotFamily currentPlayer = invocation.getArgument(0);
-                        return currentPlayer == RobotFamily.SQUARE_RED ? RobotFamily.SQUARE_BLUE : RobotFamily.SQUARE_RED;
-                    } else if (method.getName().equals("dropStone")) {
-                        return null;
-                    } else if (method.getName().equals("testWinConditions")) {
-                        stonesArgs.add(invocation.getArgument(0));
-                        currentPlayerArgs.add(invocation.getArgument(1));
-                        return currentPlayerArgs.size() >= 5;
-                    } else {
-                        return invocation.callRealMethod();
+                    switch (invocation.getMethod().getName()) {
+                        case "nextPlayer" -> {
+                            RobotFamily currentPlayer = invocation.getArgument(0);
+                            return currentPlayer == RobotFamily.SQUARE_RED ? RobotFamily.SQUARE_BLUE : RobotFamily.SQUARE_RED;
+                        }
+                        case "dropStone" -> {
+                            return null;
+                        }
+                        case "testWinConditions" -> {
+                            stonesArgs.add(invocation.getArgument(0));
+                            currentPlayerArgs.add(invocation.getArgument(1));
+                            return currentPlayerArgs.size() >= 5;
+                        }
+                        default -> {
+                            return invocation.callRealMethod();
+                        }
                     }
                 };
                 int worldHeight = 5;

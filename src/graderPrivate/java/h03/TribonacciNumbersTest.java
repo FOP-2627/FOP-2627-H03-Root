@@ -31,7 +31,7 @@ import static org.tudalgo.algoutils.tutor.general.assertions.Assertions2.context
     unit = TimeUnit.SECONDS,
     threadMode = Timeout.ThreadMode.SEPARATE_THREAD
 )
-@SkipAfterFirstFailedTest(TestConstants.SKIP_AFTER_FIRST_FAILED_TEST)
+@SkipAfterFirstFailedTest
 public class TribonacciNumbersTest {
     private static final int[] startingNumbers = {0, 1, 1};
 
@@ -72,7 +72,7 @@ public class TribonacciNumbersTest {
         /**
          * Tests the {@link TribonacciNumbers#push(int[], int)} method.
          *
-         * @param params        The {@link JsonParameterSet} to use for the test.
+         * @param params             The {@link JsonParameterSet} to use for the test.
          * @param checkLastOnly      Whether to only test the last element.
          * @param checkUnchangedOnly Whether to only test that the input array is unchanged. Will not test the result.
          */

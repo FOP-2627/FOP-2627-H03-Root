@@ -4,7 +4,6 @@ import org.sourcegrade.jagr.api.rubric.Criterion;
 import org.sourcegrade.jagr.api.rubric.JUnitTestRef;
 import org.sourcegrade.jagr.api.rubric.Rubric;
 import org.sourcegrade.jagr.api.rubric.RubricProvider;
-import org.sourcegrade.jagr.api.testing.RubricConfiguration;
 import org.tudalgo.algoutils.tutor.general.json.JsonParameterSet;
 
 import static org.tudalgo.algoutils.tutor.general.jagr.RubricUtils.criterion;
@@ -444,10 +443,5 @@ public class H03_RubricProviderPrivate implements RubricProvider {
     @Override
     public Rubric getRubric() {
         return RUBRIC;
-    }
-
-    @Override
-    public void configure(RubricConfiguration configuration) {
-        configuration.addTransformer(new SubmissionTransformer());
     }
 }
