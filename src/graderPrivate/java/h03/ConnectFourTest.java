@@ -24,7 +24,6 @@ import org.tudalgo.algoutils.tutor.general.reflections.BasicMethodLink;
 import spoon.reflect.code.*;
 import spoon.reflect.declaration.CtElement;
 import spoon.reflect.declaration.CtMethod;
-import spoon.reflect.declaration.CtVariable;
 import spoon.reflect.reference.CtExecutableReference;
 
 import java.io.ByteArrayOutputStream;
@@ -33,6 +32,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -682,7 +682,7 @@ public class ConnectFourTest {
         @Nested
         class GameLoop {
             private void mockInputHandler(ConnectFour connectFour) {
-                ConnectFourInputHandler inputHandler = Mockito.mock(ConnectFourInputHandler.class);
+                ConnectFourInputHandler inputHandler = Mockito.spy(new ConnectFourInputHandler(connectFour));
                 try {
                     // field is 'private final', so we bend the rules
                     Field f = ConnectFour.class.getDeclaredField("inputHandler");
@@ -768,13 +768,13 @@ public class ConnectFourTest {
                 List<RobotFamily> nextPlayerArgs = new ArrayList<>();
                 Answer<?> answer = invocation -> {
                     Method method = invocation.getMethod();
-                    if (method.getName().equals("nextPlayer") && Arrays.equals(method.getParameterTypes(), new Class[]{RobotFamily.class})) {
+                    if (method.getName().equals("nextPlayer")) {
                         RobotFamily currentPlayer = invocation.getArgument(0);
                         nextPlayerArgs.add(currentPlayer);
                         return currentPlayer == RobotFamily.SQUARE_RED ? RobotFamily.SQUARE_BLUE : RobotFamily.SQUARE_RED;
-                    } else if (method.getName().equals("dropStone") && Arrays.equals(method.getParameterTypes(), new Class[]{int.class, RobotFamily[][].class, RobotFamily.class})) {
+                    } else if (method.getName().equals("dropStone")) {
                         return null;
-                    } else if (method.getName().equals("testWinConditions") && Arrays.equals(method.getParameterTypes(), new Class[]{RobotFamily[][].class, RobotFamily.class})) {
+                    } else if (method.getName().equals("testWinConditions")) {
                         return nextPlayerArgs.size() >= 5;
                     } else {
                         return invocation.callRealMethod();
@@ -816,15 +816,15 @@ public class ConnectFourTest {
                 List<RobotFamily> currentPlayerArgs = new ArrayList<>();
                 Answer<?> answer = invocation -> {
                     Method method = invocation.getMethod();
-                    if (method.getName().equals("nextPlayer") && Arrays.equals(method.getParameterTypes(), new Class[]{RobotFamily.class})) {
+                    if (method.getName().equals("nextPlayer")) {
                         RobotFamily currentPlayer = invocation.getArgument(0);
                         return currentPlayer == RobotFamily.SQUARE_RED ? RobotFamily.SQUARE_BLUE : RobotFamily.SQUARE_RED;
-                    } else if (method.getName().equals("dropStone") && Arrays.equals(method.getParameterTypes(), new Class[]{int.class, RobotFamily[][].class, RobotFamily.class})) {
-                        columnArgs.add(invocation.getArgument(0));
-                        stonesArgs.add(invocation.getArgument(1));
+                    } else if (method.getName().equals("dropStone")) {
+                        stonesArgs.add(invocation.getArgument(0));
+                        columnArgs.add(invocation.getArgument(1));
                         currentPlayerArgs.add(invocation.getArgument(2));
                         return null;
-                    } else if (method.getName().equals("testWinConditions") && Arrays.equals(method.getParameterTypes(), new Class[]{RobotFamily[][].class, RobotFamily.class})) {
+                    } else if (method.getName().equals("testWinConditions")) {
                         return currentPlayerArgs.size() >= 5;
                     } else {
                         return invocation.callRealMethod();
@@ -874,12 +874,12 @@ public class ConnectFourTest {
                 List<RobotFamily> currentPlayerArgs = new ArrayList<>();
                 Answer<?> answer = invocation -> {
                     Method method = invocation.getMethod();
-                    if (method.getName().equals("nextPlayer") && Arrays.equals(method.getParameterTypes(), new Class[]{RobotFamily.class})) {
+                    if (method.getName().equals("nextPlayer")) {
                         RobotFamily currentPlayer = invocation.getArgument(0);
                         return currentPlayer == RobotFamily.SQUARE_RED ? RobotFamily.SQUARE_BLUE : RobotFamily.SQUARE_RED;
-                    } else if (method.getName().equals("dropStone") && Arrays.equals(method.getParameterTypes(), new Class[]{int.class, RobotFamily[][].class, RobotFamily.class})) {
+                    } else if (method.getName().equals("dropStone")) {
                         return null;
-                    } else if (method.getName().equals("testWinConditions") && Arrays.equals(method.getParameterTypes(), new Class[]{RobotFamily[][].class, RobotFamily.class})) {
+                    } else if (method.getName().equals("testWinConditions")) {
                         stonesArgs.add(invocation.getArgument(0));
                         currentPlayerArgs.add(invocation.getArgument(1));
                         return currentPlayerArgs.size() >= 5;
@@ -889,14 +889,11 @@ public class ConnectFourTest {
                 };
                 int worldHeight = 5;
                 int worldWidth = 5;
-                try (MockedStatic<ConnectFour> mockedStatic = Mockito.mockStatic(ConnectFour.class, answer)) {
-                    ConnectFour connectFour = new ConnectFour(worldWidth, worldHeight, false, 0);
+                try (MockedStatic<ConnectFour> ignored = Mockito.mockStatic(ConnectFour.class, answer)) {
+                    ConnectFour connectFour = Mockito.spy(new ConnectFour(worldWidth, worldHeight, false, 0));
                     mockInputHandler(connectFour);
-                    ConnectFourInputHandler inputHandler = connectFour.getInputHandler();
-                    for (int i = 0; i < 10; i++) {
-                        inputHandler.addInput(i % worldWidth);
-                    }
-
+                    AtomicInteger i = new AtomicInteger();
+                    Mockito.doAnswer(invocation -> i.getAndUpdate(n -> n + 1 % worldWidth)).when(connectFour).waitForNextInput(Mockito.any(), Mockito.any());
                     connectFour.startGame();
                 }
 
@@ -923,9 +920,29 @@ public class ConnectFourTest {
                 }
             }
 
-            @Test
-            public void output() {
-                fail(emptyContext(), r -> "TODO: write test");
+            @CartesianTest
+            public void output(
+                @CartesianTest.Values(strings = {"SQUARE_RED", "SQUARE_BLUE"}) String family,
+                @CartesianTest.Values(booleans = {true, false}) boolean testDraw
+            ) {
+                // given
+                final RobotFamily currentPlayer = robotFamilyLookup(family);
+                final int worldHeight = 5;
+                final int worldWidth = 5;
+                try (MockedStatic<ConnectFour> mock = Mockito.mockStatic(ConnectFour.class)) {
+                    mock.when(() -> ConnectFour.testWinConditions(Mockito.any(), Mockito.any())).thenReturn(!testDraw);
+                    mock.when(() -> ConnectFour.nextPlayer(Mockito.any())).thenReturn(currentPlayer);
+                    ConnectFour connectFour = Mockito.spy(new ConnectFour(worldWidth, worldHeight, false, 0));
+                    // need to use doReturn because the method throws
+                    Mockito.doReturn(testDraw ? -1 : 0).when(connectFour).waitForNextInput(Mockito.any(), Mockito.any());
+                    mockInputHandler(connectFour);
+                    // when
+                    connectFour.startGame();
+                    // then
+                    final var verification = Mockito.verify(connectFour, Mockito.times(1));
+                    if (testDraw) verification.writeDrawMessage();
+                    else verification.writeWinnerMessage(currentPlayer);
+                }
             }
 
             @Test

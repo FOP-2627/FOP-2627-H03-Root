@@ -421,7 +421,9 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                                         "writeWinnerMessage oder writeDrawMessage werden zum Spielende im korrekten Fall aufgerufen",
                                         JUnitTestRef.ofMethod(
                                             () -> ConnectFourTest.Loop.GameLoop.class.getDeclaredMethod(
-                                                "output"
+                                                "output",
+                                                String.class,
+                                                boolean.class
                                             )
                                         )
                                     ),
