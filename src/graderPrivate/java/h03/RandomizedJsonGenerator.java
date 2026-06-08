@@ -1,14 +1,18 @@
 package h03;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fopbot.RobotFamily;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
+import java.util.stream.Stream;
 
 import static h03.TestConstants.TEST_ITERATIONS;
 
@@ -21,6 +25,7 @@ public class RandomizedJsonGenerator {
         Trib.genPushNumbers();
         Connect4.genValidateCases();
         Connect4.genDropBoard();
+        Connect4.genCheckFullBoards();
         for (boolean v : new boolean[]{true, false}) {
             Trib.genCalcNextNumbers(v);
             Trib.genTribonacciNumbers(v);
@@ -28,24 +33,61 @@ public class RandomizedJsonGenerator {
         }
     }
 
-    static class Trib {
+    /**
+     * A generator for JSON test data.
+     */
+    @FunctionalInterface
+    public interface JsonGenerator {
         /**
-         * Reference Fibonacci implementation using the closed-form formula.
+         * Generates a JSON object node.
          *
-         * @param n The number to calculate the Fibonacci number for.
-         * @return The Fibonacci number.
-         * @see <a href="https://en.wikipedia.org/wiki/Fibonacci_sequence#Closed-form_expression">Fibonacci Closed-form expression on Wikipedia</a>
+         * @param mapper The object mapper to use.
+         * @param index  The index of the object node.
+         * @param rnd    The random number generator to use.
+         * @return The generated JSON object node.
          */
-        public static long fib(final int n) {
-            final double sqrt5 = Math.sqrt(5);
-            final double phi = (1 + sqrt5) / 2;
-            final double psi = (1 - sqrt5) / 2;
+        ObjectNode generateJson(ObjectMapper mapper, int index, Random rnd);
 
-            return Math.round((Math.pow(phi, n) - Math.pow(psi, n)) / sqrt5);
+        /**
+         * Generates and saves JSON test data.
+         *
+         * @param generator The generator to use.
+         * @param amount    The amount of test data to generate.
+         * @param fileName  The file name to save the test data to.
+         * @throws IOException If an I/O error occurs.
+         */
+        static void generateJsonTestData(final JsonGenerator generator, final int amount, final String fileName) throws IOException {
+            final var seed = TestConstants.RANDOM_SEED;
+            final var random = new java.util.Random(seed);
+            final ObjectMapper mapper = new ObjectMapper();
+            final ArrayNode arrayNode = mapper.createArrayNode();
+            System.out.println("Generating test data with seed: " + seed);
+            for (int i = 0; i < amount; i++) {
+                arrayNode.add(generator.generateJson(mapper, i, random));
+            }
+
+            // convert `ObjectNode` to pretty-print JSON
+            // System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(arrayNode));
+
+            final var path = Paths.get(
+                "src",
+                "graderPrivate",
+                "resources",
+                "h03",
+                "generated",
+                fileName
+            ).toAbsolutePath();
+            System.out.printf("Saving to file: %s%n", path);
+            final var file = path.toFile();
+            boolean ignored = file.getParentFile().mkdirs();
+            boolean ignored2 = file.createNewFile();
+            mapper.writerWithDefaultPrettyPrinter().writeValue(file, arrayNode);
         }
+    }
 
+    static class Trib {
         public static void genPushNumbers() throws IOException {
-            TestUtils.generateJsonTestData(
+            JsonGenerator.generateJsonTestData(
                 (mapper, index, rnd) -> {
                     final ObjectNode objectNode = mapper.createObjectNode();
                     objectNode.put("value", rnd.nextInt((int) -2e5, (int) 2e5));
@@ -69,23 +111,21 @@ public class RandomizedJsonGenerator {
             );
         }
 
-        public static void genCalcNextNumbers(
-            final boolean twoPositivesOnly
-        ) throws IOException {
-            TestUtils.generateJsonTestData(
+        public static void genCalcNextNumbers(final boolean threePositivesOnly) throws IOException {
+            JsonGenerator.generateJsonTestData(
                 (mapper, index, rnd) -> {
                     final ObjectNode objectNode = mapper.createObjectNode();
                     final List<Integer> input = new ArrayList<>();
-                    for (int i = 0; i < (twoPositivesOnly ? 2 : rnd.nextInt(5, 10)); i++) {
+                    for (int i = 0; i < (threePositivesOnly ? 3 : rnd.nextInt(5, 10)); i++) {
                         input.add(rnd.nextInt(
-                            twoPositivesOnly ? 0 : (int) -2e5,
+                            threePositivesOnly ? 0 : (int) -2e5,
                             (int) 2e5
                         ));
                     }
                     final ArrayNode inputArrayNode = mapper.createArrayNode();
                     input.forEach(inputArrayNode::add);
                     objectNode.set("array", inputArrayNode);
-                    final int nextFibonacci = input.getLast() + input.get(input.size() - 2);
+                    final int nextFibonacci = Stream.of(1, 2, 3).mapToInt(i -> input.get(input.size() - i)).sum();
                     input.add(nextFibonacci);
                     final ArrayNode expectedArrayNode = mapper.createArrayNode();
                     input.forEach(expectedArrayNode::add);
@@ -93,35 +133,31 @@ public class RandomizedJsonGenerator {
                     return objectNode;
                 },
                 TEST_ITERATIONS,
-                "trib/calcNext/randomNumbers" + (twoPositivesOnly ? "Positive" : "") + ".json"
+                "trib/calcNext/randomNumbers" + (threePositivesOnly ? "Positive" : "") + ".json"
             );
         }
 
-        public static void genTribonacciNumbers(
-            final boolean smallerThanTwo
-        ) throws IOException {
-            TestUtils.generateJsonTestData(
+        public static void genTribonacciNumbers(final boolean smallerThanThree) throws IOException {
+            JsonGenerator.generateJsonTestData(
                 (mapper, index, rnd) -> {
-                    final int startIdx = smallerThanTwo ? index : index + 2;
+                    final int startIdx = smallerThanThree ? index : index + 3;
+                    final var trib = Stream.iterate(new int[]{0, 1, 1}, a -> new int[]{a[1], a[2], a[0] + a[1] + a[2]}).limit(startIdx + 1).mapToInt(a -> a[0]).toArray();
                     final ObjectNode objectNode = mapper.createObjectNode();
                     objectNode.put("n", startIdx);
-                    objectNode.put("expected result", fib(startIdx));
+                    objectNode.put("expected result", trib[startIdx]);
                     final ArrayNode refArrayNode = mapper.createArrayNode();
                     for (int i = 0; i <= startIdx; i++) {
-                        refArrayNode.add(fib(i));
+                        refArrayNode.add(trib[i]);
                     }
                     objectNode.set("reference array", refArrayNode);
                     return objectNode;
-                },
-                smallerThanTwo ? 2 : TEST_ITERATIONS,
-                "trib/tribonacci/randomNumbers" + (smallerThanTwo ? "Small" : "") + ".json"
-            );
+                }, smallerThanThree ? 3 : TEST_ITERATIONS, "trib/tribonacci/randomNumbers" + (smallerThanThree ? "Small" : "") + ".json");
         }
     }
 
     static class Connect4 {
         public static void genValidateCases() throws IOException {
-            TestUtils.generateJsonTestData(
+            JsonGenerator.generateJsonTestData(
                 (mapper, index, rnd) -> {
                     final ObjectNode objectNode = mapper.createObjectNode();
 
@@ -174,25 +210,25 @@ public class RandomizedJsonGenerator {
         }
 
         public static void genDropBoard() throws IOException {
-            TestUtils.generateJsonTestData(
+            JsonGenerator.generateJsonTestData(
                 (mapper, index, rnd) -> {
                     int worldHeight = rnd.nextInt(5, 10);
                     int worldWidth = rnd.nextInt(5, 10);
                     // SQUARE_RED <-> true, SQUARE_BLUE <-> false, null <-> null
                     RobotFamily[][] gameBoard = new RobotFamily[worldHeight][worldWidth];
-                    List<Integer> firstFreeIndex = new ArrayList<>(worldWidth);  // values may exceed array index range
+                    List<Integer> numSteps = new ArrayList<>(worldWidth);
                     for (int col = 0; col < worldWidth; col++) {
                         int rowsToFill = rnd.nextInt(worldHeight);
                         for (int row = 0; row <= rowsToFill; row++) {
-                            gameBoard[row][col] = RobotFamily.SQUARE_RED;
+                            gameBoard[row][col] = rnd.nextBoolean() ? RobotFamily.SQUARE_RED : RobotFamily.SQUARE_BLUE;
                         }
-                        firstFreeIndex.add(rowsToFill + 1);
+                        numSteps.add(worldHeight - rowsToFill - 2);
                     }
 
-                    ArrayNode firstFreeIndexNode = mapper.createArrayNode();
-                    firstFreeIndex.stream()
+                    ArrayNode stepsNode = mapper.createArrayNode();
+                    numSteps.stream()
                         .map(mapper.getNodeFactory()::numberNode)
-                        .forEach(firstFreeIndexNode::add);
+                        .forEach(stepsNode::add);
 
                     ArrayNode gameBoardNode = mapper.createArrayNode();
                     Arrays.stream(gameBoard)
@@ -204,9 +240,8 @@ public class RandomizedJsonGenerator {
                     ObjectNode objectNode = mapper.createObjectNode()
                         .put("worldHeight", worldHeight)
                         .put("worldWidth", worldWidth);
-                    objectNode.set("firstFreeIndex", firstFreeIndexNode);
+                    objectNode.set("numSteps", stepsNode);
                     objectNode.set("gameBoard", gameBoardNode);
-
                     return objectNode;
                 },
                 TEST_ITERATIONS,
@@ -215,7 +250,7 @@ public class RandomizedJsonGenerator {
         }
 
         public static void genCheckWinBoard(boolean horizontal) throws IOException {
-            TestUtils.generateJsonTestData(
+            JsonGenerator.generateJsonTestData(
                 (mapper, index, rnd) -> {
                     int worldHeight = rnd.nextInt(5, 10);
                     int worldWidth = rnd.nextInt(5, 10);
@@ -265,6 +300,46 @@ public class RandomizedJsonGenerator {
                 TEST_ITERATIONS,
                 "connect4/checkWin/" + (horizontal ? "horizontal" : "vertical") + ".json"
             );
+        }
+
+        public static void genCheckFullBoards() throws IOException {
+            JsonGenerator.generateJsonTestData((mapper, index, rnd) -> {
+                int worldHeight = rnd.nextInt(1, 10);
+                int worldWidth = rnd.nextInt(1, 10);
+                ObjectNode objectNode = mapper.createObjectNode().put("worldHeight", worldHeight).put("worldWidth", worldWidth);
+                RobotFamily[][] gameBoard = new RobotFamily[worldHeight][worldWidth];
+                for (int col = 0; col < worldWidth; col++) {
+                    int rowsToFill = rnd.nextInt(worldHeight);
+                    for (int row = 0; row <= rowsToFill; row++) {
+                        gameBoard[row][col] = rnd.nextBoolean() ? RobotFamily.SQUARE_RED : RobotFamily.SQUARE_BLUE;
+                    }
+                }
+                // make sure board is not full by setting a random topmost entry to null
+                int col = rnd.nextInt(worldWidth);
+                gameBoard[worldHeight - 1][col] = null;
+                // serialize
+                ArrayNode boardNode = mapper.createArrayNode();
+                for (RobotFamily[] row : gameBoard) {
+                    ArrayNode rowNode = mapper.createArrayNode();
+                    for (RobotFamily r : row) {
+                        if (r == null) rowNode.addNull();
+                        else rowNode.add(r.getName());
+                    }
+                    boardNode.add(rowNode);
+                }
+                objectNode.set("gameBoard", boardNode);
+                ArrayNode fullNode = mapper.createArrayNode();
+                for (RobotFamily[] row : gameBoard) {
+                    ArrayNode rowNode = mapper.createArrayNode();
+                    for (RobotFamily r : row) {
+                        if (r == null) r = rnd.nextBoolean() ? RobotFamily.SQUARE_RED : RobotFamily.SQUARE_BLUE;
+                        rowNode.add(r.getName());
+                    }
+                    fullNode.add(rowNode);
+                }
+                objectNode.set("fullBoard", fullNode);
+                return objectNode;
+            }, TEST_ITERATIONS, "connect4/loop/boardFull.json");
         }
     }
 }
