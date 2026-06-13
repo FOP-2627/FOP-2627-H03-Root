@@ -221,6 +221,31 @@ public class ConnectFourTest {
                 }
             }
 
+            @Test
+            public void checkEmptyColumn() {
+                // given
+                worldHeight = 42;
+                worldWidth = 1;
+                stones = new RobotFamily[worldHeight][worldWidth];
+                baseContextBuilder = contextBuilder()
+                    .add("world height", worldHeight)
+                    .add("world width", worldWidth)
+                    .add("stones", stones);
+                World.setSize(worldWidth, worldHeight);
+                World.setDelay(0);
+                // when
+                final int column = 0;
+                int expected = worldHeight - 1;
+                Context context = baseContextBuilder
+                    .add("column", column)
+                    .build();
+                // then
+                int actual = callObject(() -> ConnectFour.getNumberOfSteps(stones, column), context, result ->
+                    "An exception occurred while invoking method getNumberOfSteps");
+                assertEquals(expected, actual, context, result ->
+                    "Method numberOfSteps returned an incorrect value");
+            }
+
             @ParameterizedTest
             @JsonParameterSetTest(randomBoard)
             public void freeSlot(JsonParameterSet params) {
