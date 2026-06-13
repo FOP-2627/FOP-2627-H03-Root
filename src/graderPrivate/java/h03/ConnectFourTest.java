@@ -367,16 +367,12 @@ public class ConnectFourTest {
                         continue;
                     }
 
-                    RobotFamily currentPlayer = RobotFamily.SQUARE_RED;
+                    RobotFamily currentPlayer = col % 2 == 0 ? RobotFamily.SQUARE_RED : RobotFamily.SQUARE_BLUE;
                     Context context = callDropStone(col, currentPlayer);
                     Robot robot = getOnlyRobot(context);
                     List<Transition> transitions = World.getGlobalWorld().getTrace(robot).getTransitions();
 
-                    System.out.println(transitions.stream().map(x -> x.action).toList());
-
                     int expectedTransitionsSize = numSteps.get(col) + 3;
-                    System.out.println("size: " + expectedTransitionsSize);
-                    System.out.println("steps: " + numSteps.get(col));
                     for (int i = 0; i < expectedTransitionsSize; i++) {
                         Transition transition = transitions.get(i);
                         final int finalI = i;
@@ -390,6 +386,8 @@ public class ConnectFourTest {
                             assertEquals(Transition.RobotAction.NONE, transition.action, context, preCommentSupplier);
                         }
                     }
+                    // assert final board state
+                    assertEquals(currentPlayer, stones[worldHeight - numSteps.get(col) - 1][col], context, r -> "Game board is incorrect after calling dropStone.");
                 }
             }
 
