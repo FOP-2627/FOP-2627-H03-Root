@@ -37,6 +37,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.tudalgo.algoutils.tutor.general.assertions.Assertions2.*;
@@ -409,7 +410,6 @@ public class ConnectFourTest {
     class CheckWin {
         @Nested
         class InLine {
-            // TODO: how complicated should this test be?
             @CartesianTest
             public void check(
                 @CartesianTest.Values(strings = {"SQUARE_RED", "SQUARE_BLUE"}) String c,
@@ -420,11 +420,20 @@ public class ConnectFourTest {
                 RobotFamily lineFamily = robotFamilyLookup(l);
                 RobotFamily[] line = Stream.generate(() -> lineFamily).limit(length).toArray(RobotFamily[]::new);
                 boolean actual = ConnectFour.testAllInLine(line, currentPlayer);
-                Context context = contextBuilder()
+                var context = contextBuilder()
                     .add("currentPlayer", currentPlayer)
-                    .add("line", line)
-                    .build();
-                assertEquals(currentPlayer == lineFamily, actual, context, r -> "Returned value is incorrect.");
+                    .add("line", line);
+                assertEquals(currentPlayer == lineFamily, actual, context.build(), r -> "Returned value is incorrect.");
+
+                // check some permutations that shouldn't pass
+                // all cases for them being even have already been checked
+                if (currentPlayer == lineFamily) return;
+                for (int i = 2; i < 10; ++i) {
+                    final int finalI = i;
+                    line = IntStream.range(0, length - 1 + i).mapToObj(v -> v % finalI == 0 ? currentPlayer : lineFamily).toArray(RobotFamily[]::new);
+                    context = context.add("line", line);
+                    assertFalse(ConnectFour.testAllInLine(line, currentPlayer), context.build(), r -> "Returned value is incorrect.");
+                }
             }
 
             @Test
