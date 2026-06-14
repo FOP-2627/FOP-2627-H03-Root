@@ -146,10 +146,17 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                                 .addChildCriteria(
                                     criterion(
                                         "Die Rückgabe ist korrekt, wenn ein freier Slot existiert.",
-                                        JUnitTestRef.ofMethod(
-                                            () -> ConnectFourTest.Drop.NumSteps.class.getDeclaredMethod(
-                                                "freeSlot",
-                                                JsonParameterSet.class
+                                        JUnitTestRef.and(
+                                            JUnitTestRef.ofMethod(
+                                                () -> ConnectFourTest.Drop.NumSteps.class.getDeclaredMethod(
+                                                    "freeSlot",
+                                                    JsonParameterSet.class
+                                                )
+                                            ),
+                                            JUnitTestRef.ofMethod(
+                                                () -> ConnectFourTest.Drop.NumSteps.class.getDeclaredMethod(
+                                                    "checkEmptyColumn"
+                                                )
                                             )
                                         )
                                     ),

@@ -37,6 +37,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.tudalgo.algoutils.tutor.general.assertions.Assertions2.*;
@@ -178,8 +179,6 @@ public class ConnectFourTest {
             );
         }
 
-        // TODO: there has to be a way to deduplicate this
-
         @ParameterizedTest
         @JsonParameterSetTest(value = "static/connect4/validate/input.json")
         public void edgeCases(final JsonParameterSet params) {
@@ -219,6 +218,31 @@ public class ConnectFourTest {
                     assertEquals(expected, actual, context, result ->
                         "Method numberOfSteps returned an incorrect value");
                 }
+            }
+
+            @Test
+            public void checkEmptyColumn() {
+                // given
+                worldHeight = 42;
+                worldWidth = 1;
+                stones = new RobotFamily[worldHeight][worldWidth];
+                baseContextBuilder = contextBuilder()
+                    .add("world height", worldHeight)
+                    .add("world width", worldWidth)
+                    .add("stones", stones);
+                World.setSize(worldWidth, worldHeight);
+                World.setDelay(0);
+                // when
+                final int column = 0;
+                int expected = worldHeight - 1;
+                Context context = baseContextBuilder
+                    .add("column", column)
+                    .build();
+                // then
+                int actual = callObject(() -> ConnectFour.getNumberOfSteps(stones, column), context, result ->
+                    "An exception occurred while invoking method getNumberOfSteps");
+                assertEquals(expected, actual, context, result ->
+                    "Method numberOfSteps returned an incorrect value");
             }
 
             @ParameterizedTest
@@ -342,16 +366,12 @@ public class ConnectFourTest {
                         continue;
                     }
 
-                    RobotFamily currentPlayer = RobotFamily.SQUARE_RED;
+                    RobotFamily currentPlayer = col % 2 == 0 ? RobotFamily.SQUARE_RED : RobotFamily.SQUARE_BLUE;
                     Context context = callDropStone(col, currentPlayer);
                     Robot robot = getOnlyRobot(context);
                     List<Transition> transitions = World.getGlobalWorld().getTrace(robot).getTransitions();
 
-                    System.out.println(transitions.stream().map(x -> x.action).toList());
-
                     int expectedTransitionsSize = numSteps.get(col) + 3;
-                    System.out.println("size: " + expectedTransitionsSize);
-                    System.out.println("steps: " + numSteps.get(col));
                     for (int i = 0; i < expectedTransitionsSize; i++) {
                         Transition transition = transitions.get(i);
                         final int finalI = i;
@@ -365,6 +385,8 @@ public class ConnectFourTest {
                             assertEquals(Transition.RobotAction.NONE, transition.action, context, preCommentSupplier);
                         }
                     }
+                    // assert final board state
+                    assertEquals(currentPlayer, stones[worldHeight - numSteps.get(col) - 1][col], context, r -> "Game board is incorrect after calling dropStone.");
                 }
             }
 
@@ -386,7 +408,6 @@ public class ConnectFourTest {
     class CheckWin {
         @Nested
         class InLine {
-            // TODO: how complicated should this test be?
             @CartesianTest
             public void check(
                 @CartesianTest.Values(strings = {"SQUARE_RED", "SQUARE_BLUE"}) String c,
@@ -397,11 +418,20 @@ public class ConnectFourTest {
                 RobotFamily lineFamily = robotFamilyLookup(l);
                 RobotFamily[] line = Stream.generate(() -> lineFamily).limit(length).toArray(RobotFamily[]::new);
                 boolean actual = ConnectFour.testAllInLine(line, currentPlayer);
-                Context context = contextBuilder()
+                var context = contextBuilder()
                     .add("currentPlayer", currentPlayer)
-                    .add("line", line)
-                    .build();
-                assertEquals(currentPlayer == lineFamily, actual, context, r -> "Returned value is incorrect.");
+                    .add("line", line);
+                assertEquals(currentPlayer == lineFamily, actual, context.build(), r -> "Returned value is incorrect.");
+
+                // check some permutations that shouldn't pass
+                // all cases for them being even have already been checked
+                if (currentPlayer == lineFamily) return;
+                for (int i = 2; i < 10; ++i) {
+                    final int finalI = i;
+                    line = IntStream.range(0, length - 1 + i).mapToObj(v -> v % finalI == 0 ? currentPlayer : lineFamily).toArray(RobotFamily[]::new);
+                    context = context.add("line", line);
+                    assertFalse(ConnectFour.testAllInLine(line, currentPlayer), context.build(), r -> "Returned value is incorrect.");
+                }
             }
 
             @Test
@@ -418,7 +448,6 @@ public class ConnectFourTest {
 
         @Nested
         class Horizontal {
-            // TODO: how strict should these tests be?
             @ParameterizedTest
             @JsonParameterSetTest("generated/connect4/checkWin/horizontal.json")
             public void goodInput(JsonParameterSet params) {
@@ -484,7 +513,6 @@ public class ConnectFourTest {
 
         @Nested
         class Vertical {
-            // TODO: how strict should these tests be?
             @ParameterizedTest
             @JsonParameterSetTest("generated/connect4/checkWin/vertical.json")
             public void goodInput(JsonParameterSet params) {
