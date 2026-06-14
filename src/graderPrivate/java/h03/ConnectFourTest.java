@@ -179,8 +179,6 @@ public class ConnectFourTest {
             );
         }
 
-        // TODO: there has to be a way to deduplicate this
-
         @ParameterizedTest
         @JsonParameterSetTest(value = "static/connect4/validate/input.json")
         public void edgeCases(final JsonParameterSet params) {
@@ -450,7 +448,6 @@ public class ConnectFourTest {
 
         @Nested
         class Horizontal {
-            // TODO: how strict should these tests be?
             @ParameterizedTest
             @JsonParameterSetTest("generated/connect4/checkWin/horizontal.json")
             public void goodInput(JsonParameterSet params) {
@@ -516,7 +513,6 @@ public class ConnectFourTest {
 
         @Nested
         class Vertical {
-            // TODO: how strict should these tests be?
             @ParameterizedTest
             @JsonParameterSetTest("generated/connect4/checkWin/vertical.json")
             public void goodInput(JsonParameterSet params) {

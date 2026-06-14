@@ -253,7 +253,6 @@ public class TribonacciNumbersTest {
             }
         }
 
-        // TODO: these two are almost identical, can this be improved?
         @ParameterizedTest
         @JsonParameterSetTest(value = inputSmall)
         public void smallerThanTwo(final JsonParameterSet params) {
