@@ -334,7 +334,7 @@ public class ConnectFour {
             final int column = waitForNextInput(stones, currentPlayer);
             if (column == -1) draw = true;
 
-            dropStone(stones, column, currentPlayer);
+            else dropStone(stones, column, currentPlayer);
         } while (!draw && !testWinConditions(stones, currentPlayer));
 
         if (draw) {
