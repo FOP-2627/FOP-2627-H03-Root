@@ -136,13 +136,16 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                                 JUnitTestRef.and(
                                     JUnitTestRef.ofMethod(
                                         () -> ConnectFourTest.Validate.class.getDeclaredMethod(
-                                            "randomCases",
-                                            JsonParameterSet.class
+                                            "cartesianBoards",
+                                            int.class,
+                                            int.class,
+                                            int.class,
+                                            boolean.class
                                         )
                                     ),
                                     JUnitTestRef.ofMethod(
                                         () -> ConnectFourTest.Validate.class.getDeclaredMethod(
-                                            "edgeCases",
+                                            "testWithDropBoard",
                                             JsonParameterSet.class
                                         )
                                     )
