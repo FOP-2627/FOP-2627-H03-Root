@@ -133,7 +133,29 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                         .addChildCriteria(
                             criterion(
                                 "Methode ist vollständig korrekt implementiert.",
-                                JUnitTestRef.ofClass(ConnectFourTest.Validate.class)
+                                JUnitTestRef.and(
+                                    JUnitTestRef.ofMethod(
+                                        () -> ConnectFourTest.Validate.class.getDeclaredMethod(
+                                            "randomCases",
+                                            JsonParameterSet.class
+                                        )
+                                    ),
+                                    JUnitTestRef.ofMethod(
+                                        () -> ConnectFourTest.Validate.class.getDeclaredMethod(
+                                            "edgeCases",
+                                            JsonParameterSet.class
+                                        )
+                                    )
+                                )
+                            ),
+                            criterion(
+                                "Die verbindlichen Anforderungen wurden eingehalten.",
+                                JUnitTestRef.ofMethod(
+                                    () -> ConnectFourTest.Validate.class.getDeclaredMethod(
+                                        "requirements"
+                                    )
+                                ),
+                                -1
                             )
                         ).build(),
                     Criterion.builder()

@@ -190,6 +190,16 @@ public class ConnectFourTest {
         public void randomCases(final JsonParameterSet params) {
             testValidateInput(params);
         }
+
+        @Test
+        public void requirements() {
+            boolean noLoopInMth = getCtMethod(ConnectFour.class, "validateInput", RobotFamily[][].class, int.class)
+                .getBody()
+                .getStatements()
+                .stream()
+                .noneMatch(CtLoop.class::isInstance);
+            assertTrue(noLoopInMth, emptyContext(), result -> "Method contains a loop.");
+        }
     }
 
     @Nested
