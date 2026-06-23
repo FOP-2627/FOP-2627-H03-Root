@@ -134,61 +134,64 @@ public class ConnectFourTest {
 
     @Nested
     class Validate {
-        public void testValidateInput(final JsonParameterSet params) {
-            // get params
-            final int paramColumn = params.getInt("column");
-            final int paramWidth = params.getInt("width");
-            final int paramHeight = params.getInt("height");
-            final List<List<String>> paramStones = params.get("stones");
-            final boolean expectedResult = params.getBoolean("expected result");
+        // just using random values
+        @CartesianTest
+        public void cartesianBoards(
+            @CartesianTest.Values(ints = {1, 2, 6, 7, 8, 1111}) int height,
+            @CartesianTest.Values(ints = {1, 2, 3, 7, 8, 9, 10, 100}) int width,
+            @CartesianTest.Values(ints = {-42, -1, 0, 1, 2, 6, 7, 67}) int column,
+            @CartesianTest.Values(booleans = {true, false}) boolean fill
+        ) {
+            // given
+            World.setSize(width, height);
+            stones = new RobotFamily[height][width];
 
-            // write params to context
-            final var ParamsContext = params.toContext("expected result");
-            final var cb = contextBuilder()
-                .add(ParamsContext)
-                .add("Method", "validateInput");
+            if (fill) {
+                for (int row = 0; row < height; row++)
+                    for (int col = 0; col < width; col++)
+                        stones[row][col] = (row + col) % 2 == 0 ? RobotFamily.SQUARE_BLUE : RobotFamily.SQUARE_RED;
+            }
 
-            // init the world size
-            World.setSize(paramWidth, paramHeight);
-
-
-            // parse array and calculate result
-            RobotFamily[][] paramStonesArray = paramStones.stream()
-                .map(innerList -> innerList.stream()
-                    .map(str -> "EMPTY".equals(str) ? null : "SQUARE_RED".equals(str) ? RobotFamily.SQUARE_RED :
-                                                             RobotFamily.SQUARE_BLUE)
-                    .toArray(RobotFamily[]::new))
-                .toArray(RobotFamily[][]::new);
-
-
-            final boolean actualResult = Assertions2.callObject(
-                () -> ConnectFour.validateInput(
-                    paramStonesArray,
-                    paramColumn
-                ),
-                cb.build(),
-                r -> "An error occurred during execution."
-            );
-
-            // validate result
-            Assertions2.assertEquals(
-                expectedResult,
-                actualResult,
-                cb.build(),
-                r -> "Invalid result."
-            );
+            var cb = contextBuilder()
+                .add("world height", height)
+                .add("world width", width)
+                .add("column", column)
+                .add("stones", stones);
+            // when
+            boolean actual = callObject(() -> ConnectFour.validateInput(stones, column), cb.build(), result ->
+                "An exception occurred while invoking method validateInput");
+            // then
+            boolean expected = column >= 0 && column < World.getWidth() && stones[World.getHeight() - 1][column] == null;
+            assertEquals(expected, actual, cb.build(), r -> "incorrect value returned");
         }
 
+        // i see no reason to generate a separate board for this test
         @ParameterizedTest
-        @JsonParameterSetTest(value = "static/connect4/validate/input.json")
-        public void edgeCases(final JsonParameterSet params) {
-            testValidateInput(params);
+        @JsonParameterSetTest("generated/connect4/drop/board.json")
+        public void testWithDropBoard(JsonParameterSet params) {
+            // given
+            setup(params);
+
+            for(int column = 0; column < World.getWidth(); column++) {
+                baseContextBuilder.add("column", column);
+                // when
+                int finalColumn = column;
+                boolean actual = callObject(() -> ConnectFour.validateInput(stones, finalColumn), baseContextBuilder.build(), result ->
+                    "An exception occurred while invoking method validateInput");
+                // then
+                boolean expected = stones[World.getHeight() - 1][column] == null;
+                assertEquals(expected, actual, baseContextBuilder.build(), r -> "incorrect value returned");
+            }
         }
 
-        @ParameterizedTest
-        @JsonParameterSetTest(value = "generated/connect4/validate/randomCases.json")
-        public void randomCases(final JsonParameterSet params) {
-            testValidateInput(params);
+        @Test
+        public void requirements() {
+            boolean noLoopInMth = getCtMethod(ConnectFour.class, "validateInput", RobotFamily[][].class, int.class)
+                .getBody()
+                .getStatements()
+                .stream()
+                .noneMatch(CtLoop.class::isInstance);
+            assertTrue(noLoopInMth, emptyContext(), result -> "Method contains a loop.");
         }
     }
 

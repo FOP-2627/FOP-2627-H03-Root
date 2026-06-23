@@ -23,7 +23,6 @@ public class RandomizedJsonGenerator {
     public static void main(String[] args) throws IOException {
         // generate everything
         Trib.genPushNumbers();
-        Connect4.genValidateCases();
         Connect4.genDropBoard();
         Connect4.genCheckFullBoards();
         for (boolean v : new boolean[]{true, false}) {
@@ -156,59 +155,6 @@ public class RandomizedJsonGenerator {
     }
 
     static class Connect4 {
-        public static void genValidateCases() throws IOException {
-            JsonGenerator.generateJsonTestData(
-                (mapper, index, rnd) -> {
-                    final ObjectNode objectNode = mapper.createObjectNode();
-
-                    // Spielfeldgröße zufällig wählen
-                    final int width = rnd.nextInt(3, 10); // Breite zwischen 3 und 10
-                    final int height = rnd.nextInt(3, 10); // Höhe zwischen 3 und 10
-                    objectNode.put("width", width);
-                    objectNode.put("height", height);
-
-                    // Zufälliges Spielfeld generieren
-                    RobotFamily[][] stones = new RobotFamily[height][width];
-                    for (int row = 0; row < height; row++) {
-                        for (int col = 0; col < width; col++) {
-                            if (rnd.nextBoolean()) {
-                                stones[row][col] = rnd.nextBoolean() ? RobotFamily.SQUARE_RED : RobotFamily.SQUARE_BLUE;
-                            }
-                        }
-                    }
-
-                    // Spaltenindex zufällig wählen (auch ungültige Indizes)
-                    final int column = rnd.nextInt(-1, width + 1);
-                    objectNode.put("column", column);
-
-                    // Erwartetes Ergebnis berechnen
-                    boolean expectedResult = column >= 0 && column < width && stones[height - 1][column] == null;
-                    objectNode.put("expected result", expectedResult);
-
-                    // Spielfeld in JSON-Format umwandeln
-                    ArrayNode stonesArray = mapper.createArrayNode();
-                    for (int row = 0; row < height; row++) {
-                        ArrayNode rowArray = mapper.createArrayNode();
-                        for (int col = 0; col < width; col++) {
-                            if (stones[row][col] == null) {
-                                rowArray.add("EMPTY");
-                            } else if (stones[row][col] == RobotFamily.SQUARE_RED) {
-                                rowArray.add("SQUARE_RED");
-                            } else {
-                                rowArray.add("SQUARE_BLUE");
-                            }
-                        }
-                        stonesArray.add(rowArray);
-                    }
-                    objectNode.set("stones", stonesArray);
-
-                    return objectNode;
-                },
-                TEST_ITERATIONS,
-                "connect4/validate/randomCases.json"
-            );
-        }
-
         public static void genDropBoard() throws IOException {
             JsonGenerator.generateJsonTestData(
                 (mapper, index, rnd) -> {
