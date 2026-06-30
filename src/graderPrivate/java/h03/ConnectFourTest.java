@@ -15,7 +15,6 @@ import org.mockito.stubbing.Answer;
 import org.sourcegrade.jagr.api.rubric.TestForSubmission;
 import org.tudalgo.algoutils.tutor.general.SpoonUtils;
 import org.tudalgo.algoutils.tutor.general.annotation.SkipAfterFirstFailedTest;
-import org.tudalgo.algoutils.tutor.general.assertions.Assertions2;
 import org.tudalgo.algoutils.tutor.general.assertions.Context;
 import org.tudalgo.algoutils.tutor.general.assertions.PreCommentSupplier;
 import org.tudalgo.algoutils.tutor.general.assertions.ResultOfObject;
@@ -665,8 +664,8 @@ public class ConnectFourTest {
 
             World.setSize(worldWidth, worldHeight);
             World.setDelay(0);
-            call(() -> ConnectFour.colorFieldBackground(winner), context, result ->
-                "An exception occurred while invoking colorFieldBackground");
+            call(() -> ConnectFour.colorBackground(winner), context, result ->
+                "An exception occurred while invoking colorBackground");
             for (int row = 0; row < worldHeight; row++) {
                 for (int col = 0; col < worldWidth; col++) {
                     int finalRow = row;

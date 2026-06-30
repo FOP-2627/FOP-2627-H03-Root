@@ -151,20 +151,6 @@ public class ConnectFour {
     }
 
     /**
-     * Checks if the current player has won by any condition. The conditions can be a horizontal, vertical, or
-     * diagonal line of at least four consecutive stones.
-     *
-     * @param stones        2D array representing the game board, where each cell contains a RobotFamily color
-     *                      indicating the player that has placed a stone in that position.
-     * @param currentPlayer The RobotFamily color representing the current player to check for a win.
-     * @return true if the current player has formed a line of at least four stones in any direction; false otherwise.
-     */
-    @StudentImplementationRequired("H3.2.3")
-    public static boolean testWinConditions(RobotFamily[][] stones, RobotFamily currentPlayer) {
-        return testWinVertical(stones, currentPlayer) || testWinHorizontal(stones, currentPlayer) || testWinDiagonal(stones, currentPlayer);
-    }
-
-    /**
      * Checks if the current player has won by forming a horizontal line of at least four consecutive stones.
      *
      * @param stones        2D array representing the game board, where each cell contains a RobotFamily color
@@ -254,6 +240,20 @@ public class ConnectFour {
     }
 
     /**
+     * Checks if the current player has won by any condition. The conditions can be a horizontal, vertical, or
+     * diagonal line of at least four consecutive stones.
+     *
+     * @param stones        2D array representing the game board, where each cell contains a RobotFamily color
+     *                      indicating the player that has placed a stone in that position.
+     * @param currentPlayer The RobotFamily color representing the current player to check for a win.
+     * @return true if the current player has formed a line of at least four stones in any direction; false otherwise.
+     */
+    @StudentImplementationRequired("H3.2.3")
+    public static boolean testWinConditions(RobotFamily[][] stones, RobotFamily currentPlayer) {
+        return testWinVertical(stones, currentPlayer) || testWinHorizontal(stones, currentPlayer) || testWinDiagonal(stones, currentPlayer);
+    }
+
+    /**
      * Switches the player for each turn. If the current player is SQUARE_BLUE, SQUARE_RED is returned as the next
      * player. If the current player is SQUARE_RED, SQUARE_BLUE is returned as the next player.
      *
@@ -271,28 +271,12 @@ public class ConnectFour {
      * @param winner The {@link RobotFamily} color of the winner.
      */
     @StudentImplementationRequired("H3.2.4")
-    public static void colorFieldBackground(RobotFamily winner) {
+    public static void colorBackground(RobotFamily winner) {
         for (int x = 0; x < World.getWidth(); x++) {
             for (int y = 0; y < World.getHeight(); y++) {
                 setFieldColor(x, y, winner);
             }
         }
-    }
-
-    /**
-     * Checks if all columns of the game board are fully occupied.
-     *
-     * @param stones 2D array representing the game board, where each cell contains a RobotFamily
-     * @return true if all columns of the game board are fully occupied; false otherwise.
-     */
-    @StudentImplementationRequired("H3.2.4")
-    public static boolean isGameBoardFull(RobotFamily[][] stones) {
-        for (int x = 0; x < World.getWidth(); x++) {
-            if (ConnectFour.validateInput(stones, x)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     /**
@@ -311,6 +295,22 @@ public class ConnectFour {
     @StudentImplementationRequired("H3.2.4")
     public void writeWinnerMessage(RobotFamily winner) {
         System.out.println("Player " + winner + " wins the game!");
+    }
+
+    /**
+     * Checks if all columns of the game board are fully occupied.
+     *
+     * @param stones 2D array representing the game board, where each cell contains a RobotFamily
+     * @return true if all columns of the game board are fully occupied; false otherwise.
+     */
+    @StudentImplementationRequired("H3.2.4")
+    public static boolean isGameBoardFull(RobotFamily[][] stones) {
+        for (int x = 0; x < World.getWidth(); x++) {
+            if (ConnectFour.validateInput(stones, x)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -342,10 +342,10 @@ public class ConnectFour {
 
         if (draw) {
             writeDrawMessage();
-            colorFieldBackground(RobotFamily.SQUARE_ORANGE);
+            colorBackground(RobotFamily.SQUARE_ORANGE);
         } else {
             writeWinnerMessage(currentPlayer);
-            colorFieldBackground(currentPlayer);
+            colorBackground(currentPlayer);
         }
     }
 

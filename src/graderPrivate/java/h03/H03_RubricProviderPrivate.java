@@ -359,7 +359,7 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                                     )
                                 ).build(),
                             Criterion.builder()
-                                .shortDescription("Methode colorFieldBackground")
+                                .shortDescription("Methode colorBackground")
                                 .minPoints(0)
                                 .addChildCriteria(
                                     criterion(
