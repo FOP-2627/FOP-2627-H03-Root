@@ -191,7 +191,7 @@ public class TribonacciNumbersTest {
                     expectedArray,
                     actualArray,
                     cb.build(),
-                    r -> "Invalid result."
+                    r -> "Invalid result.\n" // the newline space is needed for formatting
                 );
 
             }
