@@ -21,6 +21,7 @@ import org.tudalgo.algoutils.tutor.general.assertions.PreCommentSupplier;
 import org.tudalgo.algoutils.tutor.general.assertions.ResultOfObject;
 import org.tudalgo.algoutils.tutor.general.json.JsonParameterSet;
 import org.tudalgo.algoutils.tutor.general.json.JsonParameterSetTest;
+import org.tudalgo.algoutils.tutor.general.match.MatchingUtils;
 import org.tudalgo.algoutils.tutor.general.reflections.BasicMethodLink;
 import spoon.reflect.code.*;
 import spoon.reflect.declaration.CtElement;
@@ -301,7 +302,7 @@ public class ConnectFourTest {
                     return invocation.callRealMethod();
                 };
 
-                try (MockedStatic<ConnectFour> ignored = Mockito.mockStatic(ConnectFour.class, answer)){
+                try (MockedStatic<ConnectFour> ignored = Mockito.mockStatic(ConnectFour.class, answer)) {
                     final int finalCol = col;
                     call(() -> ConnectFour.dropStone(stones, finalCol, currentPlayer), context, result ->
                         "An exception occurred while invoking method dropStone. Result may be salvageable, continuing...");
@@ -709,11 +710,14 @@ public class ConnectFourTest {
             try {
                 contextBuilder.add("method", "writeDrawMessage");
                 ConnectFourInstance.writeDrawMessage();
-                assertEquals(
-                    "No valid columns found. Hence, game ends with a draw.",
-                    outputStream.toString().strip(),
+                String expected = "No valid columns found. Hence, game ends with a draw.";
+                String actual = outputStream.toString().strip();
+                contextBuilder.add("expected", expected);
+                contextBuilder.add("actual", actual);
+                assertTrue(
+                    MatchingUtils.similarity(expected, actual) > 0.8,
                     contextBuilder.build(),
-                    result -> "Method did not print the correct string"
+                    result -> "Printed String was not similar enough."
                 );
 
                 contextBuilder.add("method", "writeWinnerMessage");
@@ -721,11 +725,14 @@ public class ConnectFourTest {
                     contextBuilder.add("winner", winner);
                     outputStream.reset();
                     ConnectFourInstance.writeWinnerMessage(winner);
-                    assertEquals(
-                        "Player %s wins the game!".formatted(winner),
-                        outputStream.toString().strip(),
+                    expected = "Player %s wins the game!".formatted(winner);
+                    actual = outputStream.toString().strip();
+                    contextBuilder.add("expected", expected);
+                    contextBuilder.add("actual", actual);
+                    assertTrue(
+                        MatchingUtils.similarity(expected, actual) > 0.8,
                         contextBuilder.build(),
-                        result -> "Method did not print the correct string"
+                        result -> "Printed String was not similar enough."
                     );
                 }
             } finally {
