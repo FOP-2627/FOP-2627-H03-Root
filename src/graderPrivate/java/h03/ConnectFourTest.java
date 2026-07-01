@@ -284,7 +284,24 @@ public class ConnectFourTest {
                     .add("currentPlayer", currentPlayer)
                     .build();
                 World.getGlobalWorld().reset();
-                try {
+
+                Answer<?> answer = invocation -> {
+                    Method method = invocation.getMethod();
+                    if (method.getName().equals("getNumberOfSteps")) {
+                        RobotFamily[][] stones = invocation.getArgument(0);
+                        int column = invocation.getArgument(1);
+                        // implementation copied from solution
+                        for (int row = 0; row < stones.length; row++) {
+                            if (stones[row][column] == null) {
+                                return stones.length - 1 - row;
+                            }
+                        }
+                        return -1;
+                    }
+                    return invocation.callRealMethod();
+                };
+
+                try (MockedStatic<ConnectFour> ignored = Mockito.mockStatic(ConnectFour.class, answer)){
                     final int finalCol = col;
                     call(() -> ConnectFour.dropStone(stones, finalCol, currentPlayer), context, result ->
                         "An exception occurred while invoking method dropStone. Result may be salvageable, continuing...");
