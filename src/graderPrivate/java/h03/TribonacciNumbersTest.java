@@ -61,6 +61,7 @@ public class TribonacciNumbersTest {
             final var cb = contextBuilder()
                 .add("expected", expected)
                 .add("actual", actual);
+            Assertions2.assertEquals(expected.length, actual.length, cb.build(), r -> "Array has incorrect length.");
             Assertions2.assertArrayEquals(expected, actual, cb.build(), r -> "");
         }
     }
@@ -96,6 +97,7 @@ public class TribonacciNumbersTest {
             final var actualArray = Arrays.stream(result).boxed().toList();
             cb.add("actual result", actualArray);
             if (checkUnchangedOnly) {
+                // no need to assert length here since changing it is impossible
                 Assertions2.assertIterableEquals(
                     input,
                     Arrays.stream(inputArray).boxed().toList(),
@@ -112,6 +114,7 @@ public class TribonacciNumbersTest {
                     r -> "Invalid result."
                 );
             } else {
+                Assertions2.assertEquals(expectedArray.size(), actualArray.size(), cb.build(), r -> "Array has incorrect length");
                 Assertions2.assertIterableEquals(
                     expectedArray,
                     actualArray,
@@ -167,6 +170,7 @@ public class TribonacciNumbersTest {
                 final var actualArray = Arrays.stream(result).boxed().toList();
                 cb.add("actual result", actualArray);
                 if (checkRequirements) {
+                    // no need to assert length here since changing it is impossible
                     Assertions2.assertIterableEquals(
                         input,
                         Arrays.stream(inputArray).boxed().toList(),
@@ -182,11 +186,12 @@ public class TribonacciNumbersTest {
                     );
                     return;
                 }
+                Assertions2.assertEquals(expectedArray.size(), actualArray.size(), cb.build(), r -> "Array has incorrect length");
                 Assertions2.assertIterableEquals(
                     expectedArray,
                     actualArray,
                     cb.build(),
-                    r -> "Invalid result."
+                    r -> "Invalid result.\n" // the newline space is needed for formatting
                 );
 
             }
