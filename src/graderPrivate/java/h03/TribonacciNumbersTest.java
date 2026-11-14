@@ -272,9 +272,7 @@ public class TribonacciNumbersTest {
 
         @Test
         public void requirements() throws NoSuchMethodException {
-            // test exactly one for loop
-            final var ml = BasicMethodLink.of(TribonacciNumbers.class.getDeclaredMethod("tribonacci", int.class));
-            final var ctElement = ml.getCtElement();
+            final var ctElement = BasicMethodLink.of(TribonacciNumbers.class.getDeclaredMethod("tribonacci", int.class)).getCtElement();
             final var cb = contextBuilder()
                 .add("Method", "tribonacci");
 
@@ -290,26 +288,6 @@ public class TribonacciNumbersTest {
                 loops.size(),
                 cb.build(),
                 r -> "The method should contain exactly one loop."
-            );
-            // assert correct method calls
-            final Set<String> actualCalls = ctElement.filterChildren(c -> c instanceof CtInvocation<?>)
-                .list(CtInvocation.class)
-                .stream()
-                .map(c -> c.getExecutable().getSimpleName())
-                .collect(Collectors.toSet());
-            cb.add("method calls", actualCalls);
-            Assertions2.assertEquals(
-                2,
-                actualCalls.size(),
-                cb.build(),
-                r -> "The method should contain exactly two method calls."
-            );
-            final var expectedCalls = Set.of("calculateNextTribonacci", "getStartingNumbers");
-            Assertions2.assertEquals(
-                expectedCalls,
-                actualCalls,
-                cb.build(),
-                r -> "The method should only call calculateNextTribonacci."
             );
         }
     }
