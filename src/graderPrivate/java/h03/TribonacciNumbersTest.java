@@ -230,7 +230,7 @@ public class TribonacciNumbersTest {
                     .add(params.toContext("reference array"))
                     .add("Method", "tribonacci");
 
-                mock.when(TribonacciNumbers::getStartingNumbers).thenReturn(startingNumbers);
+                mock.when(TribonacciNumbers::getStartingNumbers).thenReturn(Arrays.copyOf(startingNumbers, startingNumbers.length));
 
                 registerPush(mock);
 
