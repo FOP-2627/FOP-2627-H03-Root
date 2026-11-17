@@ -441,7 +441,8 @@ public class H03_RubricProviderPrivate implements RubricProvider {
                                             () -> ConnectFourTest.Loop.GameLoop.class.getDeclaredMethod(
                                                 "output",
                                                 String.class,
-                                                boolean.class
+                                                boolean.class,
+                                                int.class
                                             )
                                         )
                                     ),

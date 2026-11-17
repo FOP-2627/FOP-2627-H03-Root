@@ -11,6 +11,7 @@ import org.junitpioneer.jupiter.cartesian.CartesianTest;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.exceptions.base.MockitoException;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.sourcegrade.jagr.api.rubric.TestForSubmission;
 import org.tudalgo.algoutils.tutor.general.SpoonUtils;
@@ -1016,7 +1017,8 @@ public class ConnectFourTest {
             @CartesianTest
             public void output(
                 @CartesianTest.Values(strings = {"SQUARE_RED", "SQUARE_BLUE"}) String family,
-                @CartesianTest.Values(booleans = {true, false}) boolean testDraw
+                @CartesianTest.Values(booleans = {true, false}) boolean testDraw,
+                @CartesianTest.Values(ints = {1, 2, 42, 67, 9}) final int iterations
             ) {
                 // given
                 final RobotFamily currentPlayer = robotFamilyLookup(family);
@@ -1024,6 +1026,13 @@ public class ConnectFourTest {
                 final int worldWidth = 5;
                 try (MockedStatic<ConnectFour> mock = Mockito.mockStatic(ConnectFour.class)) {
                     mock.when(() -> ConnectFour.testWinConditions(Mockito.any(), Mockito.any())).thenReturn(!testDraw);
+                    mock.when(() -> ConnectFour.isGameBoardFull(Mockito.any())).thenAnswer(new Answer<Boolean>() {
+                        int inv = iterations;
+                        @Override
+                        public Boolean answer(InvocationOnMock invocation) {
+                            return inv-- <= 0;
+                        }
+                    });
                     mock.when(() -> ConnectFour.nextPlayer(Mockito.any())).thenReturn(currentPlayer);
                     ConnectFour connectFour = Mockito.spy(new ConnectFour(worldWidth, worldHeight, false, 0));
                     // need to use doReturn because the method throws
